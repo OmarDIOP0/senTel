@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -16,12 +16,19 @@ public class Rapport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date date;
+
+    private LocalDateTime date;
+
     private double notePerformance;
+
     private double puissanceRecu;
+
     @Enumerated(EnumType.STRING)
     private Status status;
+
     private String conclusion;
 
+    @OneToOne
+    @JoinColumn(name = "configuration_id", nullable = false, unique = true)
+    private Configuration configuration;
 }

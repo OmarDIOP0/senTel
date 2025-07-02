@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -16,11 +16,17 @@ public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String libelle;
+
     private String description;
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date date;
+
+    private LocalDateTime date;
+
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @OneToOne
+    @JoinColumn(name = "configuration_id", nullable = false, unique = true)
+    private Configuration configuration;
 }
