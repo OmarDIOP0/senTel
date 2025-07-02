@@ -32,21 +32,29 @@ public class EmetteurService implements IEmetteurService {
 
     @Override
     public Emetteur updateEmetteur(EmetteurRequest request,Long id) {
-        return null;
+        Emetteur emetteur = emetteurRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Emetteur not found"));
+        emetteur.setConfiguration(emetteur.getConfiguration());
+        emetteur.setFrequence(request.getFrequence());
+        emetteur.setPuissanceEntree(request.getPuissanceEntree());
+        return emetteurRepo.save(emetteur);
     }
 
     @Override
-    public Emetteur deleteEmetteur(EmetteurRequest request) {
-        return null;
+    public void deleteEmetteur(Long id) {
+        Emetteur emetteur = emetteurRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Emetteur not found"));
+        emetteurRepo.delete(emetteur);
     }
 
     @Override
     public List<Emetteur> getAllEmetteurs() {
-        return List.of();
+        return emetteurRepo.findAll();
     }
 
     @Override
     public Emetteur getEmetteurById(Long id) {
-        return null;
+        return emetteurRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Emetteur not found"));
     }
 }
