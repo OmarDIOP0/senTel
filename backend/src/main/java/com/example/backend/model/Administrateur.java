@@ -15,4 +15,5 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Entity
 public class Administrateur extends Utilisateur {
+    private String codeSecret;
 }
