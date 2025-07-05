@@ -9,4 +9,6 @@ public class NotificationRequest {
     private String libelle;
     private String description;
     private Status status;
+    private Long clientId;
+    private Long configId;
 }
