@@ -1,5 +1,6 @@
 package com.example.backend.config;
 
+import com.example.backend.Service.security.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
