@@ -8,4 +8,7 @@ import lombok.NoArgsConstructor;
 public class ConfigurationRequest {
     private double distance;
     private double bandePassante;
+    private Long emetteurId;
+    private Long recepteurId;
+    private Long clientId;
 }
