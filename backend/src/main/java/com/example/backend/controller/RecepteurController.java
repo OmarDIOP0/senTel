@@ -1,10 +1,16 @@
 package com.example.backend.controller;
 
 import com.example.backend.Service.recepteur.RecepteurService;
+import com.example.backend.exception.ResourceAlreadyExistException;
+import com.example.backend.model.Recepteur;
+import com.example.backend.request.RecepteurRequest;
+import com.example.backend.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.backend.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -12,62 +18,44 @@ import java.util.List;
 @RestController
 @RequestMapping("${api.prefix}/recepteur")
 public class RecepteurController {
-    private RecepteurService recepteurService;
+    private final RecepteurService recepteurService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse> getAllAdresses() {
+    public ResponseEntity<ApiResponse> getAllRecepteur() {
         try {
-            List<Adresse> adresses = adresseService.getAllAdresses();
+            List<Recepteur> recepteurs = recepteurService.getRecepteurs();
             return ResponseEntity.ok(new ApiResponse(
                     true,
                     "Found",
-                    adresses
+                    recepteurs
             ));
-        }catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(
-                    false,
-                    "Error",
-                    e.getMessage()
-            ));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(false, e.getMessage(), null));
         }
     }
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> getAdresseById(@PathVariable Long id) {
-        try{
-            Adresse adresse = adresseService.getAdresseById(id);
-            return ResponseEntity.ok(new ApiResponse(
-                    true,
-                    "Found",
-                    adresse
-            ));
-        }
-        catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
-                    false,
-                    e.getMessage(),
-                    null
-            ));
+    public ResponseEntity<ApiResponse> getRecepteurById(@PathVariable Long id) {
+        try {
+            Recepteur recepteur = recepteurService.getRecepteur(id);
+            return ResponseEntity.ok(new ApiResponse(true, "Found", recepteur));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(false, e.getMessage(), null));
         }
     }
 
+
     @PostMapping
-    public ResponseEntity<ApiResponse> addAdresse(@RequestBody AddAdresseRequest adresse) {
+    public ResponseEntity<ApiResponse> addRecepteur(@Valid @RequestBody RecepteurRequest request) {
         try{
-            Adresse adresseResult = adresseService.addAdresse(adresse);
+            Recepteur recepteurResult = recepteurService.addRecepteur(request);
             return ResponseEntity.ok(new ApiResponse(
                     true,
-                    "Add Adress success",
-                    adresseResult
+                    "Add Recepteur success",
+                    recepteurResult
             ));
-        }
-        catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
-                    false,
-                    e.getMessage(),
-                    null
-            ));
-        }
-        catch (ResourceAlreadyExistException e){
+        } catch (ResourceAlreadyExistException e){
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse(
                     false,
                     e.getMessage(),
@@ -83,21 +71,15 @@ public class RecepteurController {
         }
     }
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse> updateAdresse(@RequestBody AdresseUpdateRequest adresse, @PathVariable Long id) {
+    public ResponseEntity<ApiResponse> updateRecepteur(@RequestBody RecepteurRequest request, @PathVariable Long id) {
         try {
-            Adresse adresseResult = adresseService.updateAdresse(adresse, id);
+            Recepteur recepteurResult = recepteurService.updateRecepteur(request, id);
             return ResponseEntity.ok(new ApiResponse(
                     true,
-                    "Adress Updated Successfully",
-                    adresseResult
+                    "Recepteur updated successfully",
+                    recepteurResult
             ));
-        }catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
-                    false,
-                    e.getMessage(),
-                    null
-            ));
-        }catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(
                     false,
                     "Error",
@@ -105,21 +87,13 @@ public class RecepteurController {
             ));
         }
     }
-    @DeleteMapping("{id}")
-    public ResponseEntity<ApiResponse> deleteAdresse(@PathVariable Long id) {
-        try {
-            adresseService.deleteAdresse(id);
-            return ResponseEntity.ok(new ApiResponse(
-                    true,
-                    "Adress deleted successfully",
-                    id
-            ));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
-                    false,
-                    e.getMessage(),
-                    null
-            ));
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteRecepteur(@PathVariable Long id) {
+        recepteurService.deleteRecepteur(id);
+        return ResponseEntity.ok(new ApiResponse(
+                true,
+                "Recepteur deleted successfully",
+                id
+        ));
     }
 }

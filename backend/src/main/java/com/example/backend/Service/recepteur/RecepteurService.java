@@ -1,5 +1,6 @@
 package com.example.backend.Service.recepteur;
 
+import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.model.Configuration;
 import com.example.backend.model.Recepteur;
 import com.example.backend.repository.ConfigurationRepo;
@@ -17,7 +18,7 @@ public class RecepteurService implements IRecepteurService {
     private final RecepteurRepo recepteurRepo;
 
     @Override
-    public Recepteur addRecepteur(Long configId, RecepteurRequest request) {
+    public Recepteur addRecepteur(RecepteurRequest request) {
         Configuration config = configurationRepo.findById(configId)
                 .orElseThrow(() -> new IllegalArgumentException("Configuration not found"));
         if(config.getRecepteur()!=null){
@@ -35,7 +36,7 @@ public class RecepteurService implements IRecepteurService {
     @Override
     public Recepteur getRecepteur(Long id) {
         return recepteurRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Recepteur not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Recepteur not found"));
     }
 
     @Override
