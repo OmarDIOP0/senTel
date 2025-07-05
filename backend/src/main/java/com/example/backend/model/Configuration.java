@@ -34,4 +34,8 @@ public class Configuration {
 
     @OneToOne(mappedBy = "configuration", cascade = CascadeType.ALL, orphanRemoval = true)
     private Recepteur recepteur;
+
+    @ManyToOne
+    @JoinColumn(name = "utilisateur_id",nullable = false)
+    private Client client;
 }
