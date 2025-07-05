@@ -10,4 +10,5 @@ public class AttenuationRequest {
     private TypeAttenuation nomAttenuation;
     private double valeur;
     private double longueurCable;
+    private Long configId;
 }
