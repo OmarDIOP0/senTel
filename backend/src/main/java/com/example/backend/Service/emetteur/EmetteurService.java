@@ -23,18 +23,18 @@ public class EmetteurService implements IEmetteurService {
             throw new IllegalArgumentException("Un emetteur est déjà associé à cette configuration");
         }
         Emetteur emetteur = new Emetteur();
-        emetteur.setConfiguration(config);
         emetteur.setFrequence(request.getFrequence());
         emetteur.setPuissanceEntree(request.getPuissanceEntree());
+        emetteurRepo.save(emetteur);
         config.setEmetteur(emetteur);
-        return emetteurRepo.save(emetteur);
+        configurationRepo.save(config);
+        return emetteur;
     }
 
     @Override
     public Emetteur updateEmetteur(EmetteurRequest request,Long id) {
         Emetteur emetteur = emetteurRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Emetteur not found"));
-        emetteur.setConfiguration(emetteur.getConfiguration());
         emetteur.setFrequence(request.getFrequence());
         emetteur.setPuissanceEntree(request.getPuissanceEntree());
         return emetteurRepo.save(emetteur);

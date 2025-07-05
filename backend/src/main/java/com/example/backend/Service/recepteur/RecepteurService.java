@@ -24,30 +24,36 @@ public class RecepteurService implements IRecepteurService {
             throw new IllegalArgumentException("Recepteur deja associé a cette configuration");
         }
         Recepteur recepteur = new Recepteur();
-        recepteur.setConfiguration(config);
         recepteur.setSensibilite(request.getSensibilite());
         recepteur.setGainReception(request.getGainReception());
+        recepteurRepo.save(recepteur);
         config.setRecepteur(recepteur);
-        return recepteurRepo.save(recepteur);
+        configurationRepo.save(config);
+        return recepteur;
     }
 
     @Override
     public Recepteur getRecepteur(Long id) {
-        return null;
+        return recepteurRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Recepteur not found"));
     }
 
     @Override
     public List<Recepteur> getRecepteurs() {
-        return List.of();
+        return recepteurRepo.findAll();
     }
 
     @Override
     public Recepteur updateRecepteur(RecepteurRequest request, Long id) {
-        return null;
+        Recepteur recepteur = getRecepteur(id);
+        recepteur.setSensibilite(request.getSensibilite());
+        recepteur.setGainReception(request.getGainReception());
+        return recepteurRepo.save(recepteur);
     }
 
     @Override
     public void deleteRecepteur(Long id) {
-
+        Recepteur recepteur = getRecepteur(id);
+        recepteurRepo.delete(recepteur);
     }
 }
