@@ -19,7 +19,7 @@ public class RecepteurService implements IRecepteurService {
 
     @Override
     public Recepteur addRecepteur(RecepteurRequest request) {
-        Configuration config = configurationRepo.findById(configId)
+        Configuration config = configurationRepo.findById(request.getConfigurationId())
                 .orElseThrow(() -> new IllegalArgumentException("Configuration not found"));
         if(config.getRecepteur()!=null){
             throw new IllegalArgumentException("Recepteur deja associé a cette configuration");

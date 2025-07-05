@@ -16,8 +16,8 @@ public class EmetteurService implements IEmetteurService {
     private final ConfigurationRepo configurationRepo;
     private final EmetteurRepo emetteurRepo;
     @Override
-    public Emetteur addEmetteur(Long ConfigId, EmetteurRequest request) {
-        Configuration config = configurationRepo.findById(ConfigId)
+    public Emetteur addEmetteur(EmetteurRequest request) {
+        Configuration config = configurationRepo.findById(request.getConfigurationId())
                 .orElseThrow(() -> new IllegalArgumentException("Config not found"));
         if(config.getEmetteur() != null){
             throw new IllegalArgumentException("Un emetteur est déjà associé à cette configuration");
