@@ -27,6 +27,10 @@ public class Notification {
     private Status status;
 
     @OneToOne
-    @JoinColumn(name = "configuration_id", nullable = false, unique = true)
+    @JoinColumn(name = "configuration_id", nullable = false)
     private Configuration configuration;
+
+    @ManyToOne
+    @JoinColumn(name = "client_id",nullable = false)
+    private Client client;
 }

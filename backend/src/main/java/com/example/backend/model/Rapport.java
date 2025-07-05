@@ -29,6 +29,6 @@ public class Rapport {
     private String conclusion;
 
     @OneToOne
-    @JoinColumn(name = "configuration_id", nullable = false, unique = true)
+    @JoinColumn(name = "configuration_id", nullable = false)
     private Configuration configuration;
 }

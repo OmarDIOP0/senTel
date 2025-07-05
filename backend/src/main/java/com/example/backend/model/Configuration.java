@@ -29,13 +29,15 @@ public class Configuration {
     @OneToOne(mappedBy = "configuration", cascade = CascadeType.ALL, orphanRemoval = true)
     private Notification notification;
 
-    @OneToOne(mappedBy = "configuration", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToOne
+    @JoinColumn(name = "emetteur_id",nullable = false)
     private Emetteur emetteur;
 
-    @OneToOne(mappedBy = "configuration", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToOne
+    @JoinColumn(name = "recepteur_id",nullable = false)
     private Recepteur recepteur;
 
     @ManyToOne
-    @JoinColumn(name = "utilisateur_id",nullable = false)
+    @JoinColumn(name = "client_id",nullable = false)
     private Client client;
 }

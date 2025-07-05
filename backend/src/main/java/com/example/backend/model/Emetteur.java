@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @RequiredArgsConstructor
@@ -18,7 +20,7 @@ public class Emetteur {
 
     private double frequence;
 
-    @OneToOne
-    @JoinColumn(name = "configuration_id", nullable = false, unique = true)
-    private Configuration configuration;
+    @OneToMany(mappedBy = "emetteur",cascade = CascadeType.ALL,orphanRemoval = true)
+    private List<Configuration> configurations;
+
 }

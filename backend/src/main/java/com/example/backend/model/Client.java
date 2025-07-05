@@ -25,4 +25,7 @@ public class Client extends Utilisateur {
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Configuration> configurations;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL,orphanRemoval = true)
+    private List<Notification> notifications;
 }
