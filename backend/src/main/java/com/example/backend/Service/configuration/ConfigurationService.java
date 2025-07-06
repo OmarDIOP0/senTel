@@ -1,12 +1,14 @@
 package com.example.backend.Service.configuration;
 
-import com.example.backend.Service.emetteur.EmetteurService;
 import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.model.*;
 import com.example.backend.repository.*;
 import com.example.backend.request.ConfigurationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -59,5 +61,15 @@ public class ConfigurationService implements IConfigurationService{
                 .orElseThrow(() -> new RuntimeException("Configuration Introuvable"));
 
         configurationRepo.delete(config);
+    }
+
+    @Override
+    public List<Configuration> getConfigurations() {
+        return configurationRepo.findAll();
+    }
+
+    @Override
+    public List<Configuration> getConfigurationByProjet(Long projetId) {
+        return configurationRepo.findByProjetId(projetId);
     }
 }
