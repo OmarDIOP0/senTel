@@ -11,4 +11,5 @@ public class ConfigurationRequest {
     private Long emetteurId;
     private Long recepteurId;
     private Long clientId;
+    private Long projetId;
 }
