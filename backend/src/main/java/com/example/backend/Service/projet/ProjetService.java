@@ -4,6 +4,7 @@ import com.example.backend.exception.ResourceAlreadyExistException;
 import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.model.Projet;
 import com.example.backend.repository.ProjetRepo;
+import com.example.backend.request.ProjetRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class ProjetService implements IProjetService{
     }
 
     @Override
-    public Projet addProjet(Projet projet) {
+    public Projet addProjet(ProjetRequest request) {
         Projet existingProject = projetRepo.findByNom(projet.getNom());
         if (existingProject != null) {
             throw new ResourceAlreadyExistException("Le projet existe deja !");
@@ -28,7 +29,7 @@ public class ProjetService implements IProjetService{
     }
 
     @Override
-    public Projet updateProjet(Projet projet, Long id) {
+    public Projet updateProjet(ProjetRequest request, Long id) {
         Projet projetFound = projetRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Le projet non trouvé"));
         projetFound.setNom(projet.getNom());
