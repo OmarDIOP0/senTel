@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -18,6 +19,26 @@ import java.util.Optional;
 public class ConfigurationController {
 
     private final ConfigurationService configurationService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse> getConfiguration() {
+        try{
+            List<Configuration> configs = configurationService.getConfigurations();
+            return  ResponseEntity.status(HttpStatus.OK).body(
+                    new ApiResponse(
+                            true,
+                            "Liste des configurations",
+                            configs
+                    )
+            );
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(
+                    false,
+                    "Erreur lors de la création de la configuration",
+                    e.getMessage()
+            ));
+        }
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse> createConfiguration(@RequestBody ConfigurationRequest request) {
@@ -52,7 +73,7 @@ public class ConfigurationController {
                     "Configuration mise à jour avec succès",
                     updated
             ));
-        } catch (IllegalArgumentException e) {
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
                     false,
                     e.getMessage(),
@@ -76,7 +97,7 @@ public class ConfigurationController {
                     "Configuration trouvée",
                     config
             ));
-        } catch (RuntimeException e) {
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
                     false,
                     e.getMessage(),
@@ -95,6 +116,23 @@ public class ConfigurationController {
                     id
             ));
         } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
+                    false,
+                    e.getMessage(),
+                    null
+            ));
+        }
+    }
+    @GetMapping("/projet/{id}")
+    public ResponseEntity<ApiResponse> getConfigurationByProjet(@PathVariable Long id) {
+        try {
+            List<Configuration> config = configurationService.getConfigurationByProjet(id);
+            return ResponseEntity.ok(new ApiResponse(
+                    true,
+                    "Liste des configurations par projet :",
+                    config
+            ));
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
                     false,
                     e.getMessage(),
