@@ -40,4 +40,9 @@ public class Configuration {
     @ManyToOne
     @JoinColumn(name = "client_id",nullable = false)
     private Client client;
+
+    @ManyToOne
+    @JoinColumn(name = "projet_id", nullable = false)
+    private Projet projet;
+
 }
