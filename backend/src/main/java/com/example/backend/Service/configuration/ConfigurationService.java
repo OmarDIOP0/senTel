@@ -2,14 +2,8 @@ package com.example.backend.Service.configuration;
 
 import com.example.backend.Service.emetteur.EmetteurService;
 import com.example.backend.exception.ResourceNotFoundException;
-import com.example.backend.model.Client;
-import com.example.backend.model.Configuration;
-import com.example.backend.model.Emetteur;
-import com.example.backend.model.Recepteur;
-import com.example.backend.repository.ClientRepo;
-import com.example.backend.repository.ConfigurationRepo;
-import com.example.backend.repository.EmetteurRepo;
-import com.example.backend.repository.RecepteurRepo;
+import com.example.backend.model.*;
+import com.example.backend.repository.*;
 import com.example.backend.request.ConfigurationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +15,7 @@ public class ConfigurationService implements IConfigurationService{
     private final EmetteurRepo emetteurRepo;
     private final RecepteurRepo recepteurRepo;
     private final ClientRepo clientRepo;
+    private final ProjetRepo projetRepo;
 
     @Override
     public Configuration creerConfiguration(ConfigurationRequest request) {
@@ -30,12 +25,15 @@ public class ConfigurationService implements IConfigurationService{
                 .orElseThrow(() -> new ResourceNotFoundException("Récepteur introuvable"));
         Client client = clientRepo.findById(request.getClientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Client introuvable"));
+        Projet projet = projetRepo.findById(request.getProjetId())
+                .orElseThrow(() -> new ResourceNotFoundException("Projet introuvable"));
         Configuration configuration = new Configuration();
         configuration.setDistance(request.getDistance());
         configuration.setBandePassante(request.getBandePassante());
         configuration.setEmetteur(emetteur);
         configuration.setRecepteur(recepteur);
         configuration.setClient(client);
+        configuration.setProjet(projet);
         return configurationRepo.save(configuration);
     }
 
