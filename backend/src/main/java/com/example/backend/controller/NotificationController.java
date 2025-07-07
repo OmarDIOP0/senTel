@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("${api.prefix}/notification")
 @RequiredArgsConstructor
@@ -17,6 +19,15 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse> getNotifications() {
+        try {
+            List<Notification> notification = notificationService.getNotifications();
+            return ResponseEntity.ok(new ApiResponse(true, "Liste des notifications trouvées", notification));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, e.getMessage(), null));
+        }
+    }
     @PostMapping
     public ResponseEntity<ApiResponse> createNotification(@RequestBody NotificationRequest request) {
         try {
@@ -54,6 +65,24 @@ public class NotificationController {
         try {
             notificationService.supprimerNotification(id);
             return ResponseEntity.ok(new ApiResponse(true, "Notification supprimée", id));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, e.getMessage(), null));
+        }
+    }
+    @GetMapping("/client/{id}")
+    public ResponseEntity<ApiResponse> getNotificationByClient(@PathVariable Long id) {
+        try {
+            List<Notification> notification = notificationService.getNotificationsByClient(id);
+            return ResponseEntity.ok(new ApiResponse(true, "Liste des notifications :", notification));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, e.getMessage(), null));
+        }
+    }
+    @GetMapping("/read/{id}")
+    public ResponseEntity<ApiResponse> markAsRead(@PathVariable Long id) {
+        try {
+            notificationService.markAsRead(id);
+            return ResponseEntity.ok(new ApiResponse(true, "Notification lu ",null));
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, e.getMessage(), null));
         }

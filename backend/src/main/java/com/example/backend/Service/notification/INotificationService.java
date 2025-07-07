@@ -12,4 +12,5 @@ public interface INotificationService {
     void supprimerNotification(Long id);
     List<Notification> getNotificationsByClient(Long clientId);
     void markAsRead(Long id);
+    List<Notification> getNotifications();
 }

@@ -76,4 +76,9 @@ public class NotificationService implements INotificationService {
             notificationRepo.save(notification);
         });
     }
+
+    @Override
+    public List<Notification> getNotifications() {
+        return notificationRepo.findAll();
+    }
 }
