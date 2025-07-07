@@ -9,6 +9,7 @@ public class RapportRequest {
     private double notePerformance;
     private Status status;
     private double puissanceRecu;
+    private String niveauQualite;
     private String conclusion;
     private Long configId;
 }

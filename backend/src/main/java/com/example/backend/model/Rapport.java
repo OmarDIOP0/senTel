@@ -29,6 +29,8 @@ public class Rapport {
 
     private double latenceEstimee;
 
+    private String niveauQualite;
+
     @Enumerated(EnumType.STRING)
     private Status status;
 
