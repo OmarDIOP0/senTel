@@ -14,9 +14,9 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Titre de ton API")
+                        .title("SENTEL API")
                         .version("1.0")
-                        .description("Description de l'API"))
+                        .description("Outil de Modelisation 5G"))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth",
                                 new SecurityScheme()
