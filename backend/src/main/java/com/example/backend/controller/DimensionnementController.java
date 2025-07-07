@@ -1,6 +1,7 @@
 package com.example.backend.controller;
 
-import com.example.backend.Service.dimensionnement.Dimensionnement5GService;
+import com.example.backend.Service.dimensionnement.DimensionnementService;
+import com.example.backend.model.Configuration;
 import com.example.backend.model.Rapport;
 import com.example.backend.request.ConfigurationRequest;
 import com.example.backend.response.ApiResponse;
@@ -16,10 +17,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DimensionnementController {
 
-    private final Dimensionnement5GService dimensionnementService;
+    private final DimensionnementService dimensionnementService;
 
     @PostMapping("/rapport")
-    public ResponseEntity<ApiResponse> genererRapport(@RequestBody ConfigurationRequest request) {
+    public ResponseEntity<ApiResponse> genererRapport(@RequestBody Configuration request) {
         try {
             Rapport rapport = dimensionnementService.genererRapportComplet(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(true, "Rapport généré", rapport));
@@ -51,7 +52,7 @@ public class DimensionnementController {
     }
 
     @PutMapping("/rapport/{id}")
-    public ResponseEntity<ApiResponse> updateRapport(@PathVariable Long id, @RequestBody ConfigurationRequest request) {
+    public ResponseEntity<ApiResponse> updateRapport(@PathVariable Long id, @RequestBody Configuration request) {
         try {
             Rapport rapport = dimensionnementService.updateRapport(id, request);
             return ResponseEntity.ok(new ApiResponse(true, "Rapport mis à jour", rapport));
