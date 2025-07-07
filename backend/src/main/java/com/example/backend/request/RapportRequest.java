@@ -10,4 +10,5 @@ public class RapportRequest {
     private Status status;
     private double puissanceRecu;
     private String conclusion;
+    private Long configId;
 }
