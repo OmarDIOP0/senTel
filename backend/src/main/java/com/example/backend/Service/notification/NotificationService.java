@@ -4,12 +4,15 @@ import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.model.Client;
 import com.example.backend.model.Configuration;
 import com.example.backend.model.Notification;
+import com.example.backend.model.enums.Status;
 import com.example.backend.repository.ClientRepo;
 import com.example.backend.repository.ConfigurationRepo;
 import com.example.backend.repository.NotificationRepo;
 import com.example.backend.request.NotificationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +33,7 @@ public class NotificationService implements INotificationService {
         notification.setConfiguration(config);
         notification.setLibelle(request.getLibelle());
         notification.setDescription(request.getDescription());
-        notification.setStatus(request.getStatus());
+        notification.setStatus(Status.NON_LU);
         notification.setDate(java.time.LocalDateTime.now());
 
         return notificationRepo.save(notification);
@@ -59,5 +62,18 @@ public class NotificationService implements INotificationService {
         Notification notification = notificationRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
         notificationRepo.delete(notification);
+    }
+
+    @Override
+    public List<Notification> getNotificationsByClient(Long clientId) {
+        return notificationRepo.findByClientIdOrderByDateDesc(clientId);
+    }
+
+    @Override
+    public void markAsRead(Long id) {
+        notificationRepo.findById(id).ifPresent(notification -> {
+            notification.setStatus(Status.LU);
+            notificationRepo.save(notification);
+        });
     }
 }
