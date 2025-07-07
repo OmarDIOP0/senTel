@@ -7,5 +7,7 @@ public enum Status {
     INSUFFISANT,
     EN_ATTENTE,
     CONFIRME,
-    ANNULE
+    ANNULE,
+    LU,
+    NON_LU
 }
