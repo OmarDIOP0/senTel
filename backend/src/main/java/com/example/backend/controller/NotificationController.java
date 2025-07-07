@@ -78,7 +78,7 @@ public class NotificationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, e.getMessage(), null));
         }
     }
-    @GetMapping("/read/{id}")
+    @GetMapping("/{id}/mark-as-read")
     public ResponseEntity<ApiResponse> markAsRead(@PathVariable Long id) {
         try {
             notificationService.markAsRead(id);
