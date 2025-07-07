@@ -1,16 +1,16 @@
 package com.example.backend.Service.dimensionnement;
 
 import com.example.backend.Service.rapport.RapportService;
-import com.example.backend.model.Configuration;
-import com.example.backend.model.Emetteur;
-import com.example.backend.model.Rapport;
-import com.example.backend.model.Recepteur;
+import com.example.backend.model.*;
+import com.example.backend.model.enums.Status;
 import com.example.backend.repository.ConfigurationRepo;
 import com.example.backend.repository.NotificationRepo;
 import com.example.backend.repository.RapportRepo;
 import com.example.backend.request.ConfigurationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +37,15 @@ public class DimensionnementService implements IDimensionnementService {
         rapport.setNotePerformance(calculerScorePerformance(marge, debit, latence));
         rapport.determineStatus();
         rapport.setConclusion(genererConclusion(rapport.getStatus()));
+
+        Notification notif = new Notification();
+        notif.setLibelle("Nouveau rapport généré");
+        notif.setDescription("Le rapport de la configuration #" + request() + " a été généré.");
+        notif.setDate(LocalDateTime.now());
+        notif.setStatus(pr > request.getRecepteur().getSensibilite() ? Status.CONFIRME : Status.EN_ATTENTE);
+        notif.setClient(config.getClient());
+        notif.setConfiguration(config);
+        notificationRepository.save(notif);
 
         return rapport;
     }
@@ -76,6 +85,14 @@ public class DimensionnementService implements IDimensionnementService {
     @Override
     public Rapport getRapport(Long id) {
         return null;
+    }
+    private String genererConclusion(Status status) {
+        return switch (status) {
+            case EXCELLENT -> "La liaison présente des performances excellentes pour la 5G";
+            case BON -> "La liaison est de bonne qualité pour les applications 5G";
+            case MOYEN -> "La liaison est acceptable mais pourrait nécessiter des optimisations";
+            default -> "La liaison ne répond pas aux exigences minimales pour la 5G";
+        };
     }
 
 
