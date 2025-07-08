@@ -3,7 +3,7 @@
 import { useEffect, createContext, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import showAlert from "../utils/alert";
 import APIURL from "../utils/apiUrl";
