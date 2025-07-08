@@ -49,23 +49,23 @@ const {registerMutation} = useContext(AuthContext);
         });
     }
 
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Inscription réussie !</h2>
-              <p className="text-gray-600 mb-4">
-                Votre compte a été créé avec succès. Redirection vers la page d'accueil...
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  // if (success) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+  //       <Card className="w-full max-w-md">
+  //         <CardContent className="pt-6">
+  //           <div className="text-center">
+  //             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+  //             <h2 className="text-xl font-semibold text-gray-900 mb-2">Inscription réussie !</h2>
+  //             <p className="text-gray-600 mb-4">
+  //               Votre compte a été créé avec succès. Redirection vers la page d'accueil...
+  //             </p>
+  //           </div>
+  //         </CardContent>
+  //       </Card>
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">

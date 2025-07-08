@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", JSON.stringify(data.token));
 
       if (decodedToken.role === "ADMIN") {
-        router.push("/dashboard/admin?sucess=true&&redirect=true");
+        router.push("/dashboard?sucess=true&&redirect=true");
       } else {
         router.push("/login");
       }
@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", JSON.stringify(data.token));
 
       if (decodedToken.role === "ADMIN") {
-        router.push("/dashboard/admin?sucess=true&&redirect=true");
+        router.push("/dashboard?sucess=true&&redirect=true");
       } else {
         router.push("/login");
       }

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useContext, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -11,38 +11,57 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Wifi, AlertCircle } from "lucide-react"
+import AuthContext from "@/context/AuthContext"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  // const [email, setEmail] = useState("")
+  // const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+    const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+  const {loginMutation} = useContext(AuthContext);
+    const handleSubmit = (e:React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    loginMutation.mutate(formData); 
+  };
 
-    // Simulate API call
-    setTimeout(() => {
-      if (email === "admin@sentel.com" && password === "admin123") {
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            id: 1,
-            name: "Admin User",
-            email: "admin@sentel.com",
-            role: "ADMIN",
-          }),
-        )
-        router.push("/dashboard")
-      } else {
-        setError("Email ou mot de passe incorrect")
-      }
-      setLoading(false)
-    }, 1000)
+  const handleChange = (e:React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setFormData({
+          ...formData,
+          [name]: value
+      });
   }
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   setLoading(true)
+  //   setError("")
+
+  //   // Simulate API call
+  //   setTimeout(() => {
+  //     if (email === "admin@sentel.com" && password === "admin123") {
+  //       localStorage.setItem(
+  //         "user",
+  //         JSON.stringify({
+  //           id: 1,
+  //           name: "Admin User",
+  //           email: "admin@sentel.com",
+  //           role: "ADMIN",
+  //         }),
+  //       )
+  //       router.push("/dashboard")
+  //     } else {
+  //       setError("Email ou mot de passe incorrect")
+  //     }
+  //     setLoading(false)
+  //   }, 1000)
+  // }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -71,8 +90,8 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="votre@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -83,8 +102,8 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
                 required
               />
             </div>
