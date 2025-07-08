@@ -90,6 +90,7 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="votre@email.com"
+                name="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -101,6 +102,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                name="password"
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}

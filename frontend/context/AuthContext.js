@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
 
   const [user, setUser] = useState(() => {
     if (typeof window !== "undefined" && localStorage.getItem("token")) {
-      return jwtDecode(localStorage.getItem("token"));
+        return jwtDecode(JSON.parse(localStorage.getItem("token"))); 
     }
     return null;
   });
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
   // ✅ Connexion
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }) => {
-      const response = await axios.post(`${APIURL}/admin/login`, {
+      const response = await axios.post(`${APIURL}/auth/admin/login`, {
         email,
         password,
       });
@@ -45,9 +45,10 @@ export const AuthProvider = ({ children }) => {
       setAuthTokens(data);
       const decodedToken = jwtDecode(data.token);
       setUser(decodedToken);
-      localStorage.setItem("token", JSON.stringify(data.token));
+      setAuthTokens(data.token); 
+      localStorage.setItem("token", JSON.stringify(data.token)); 
 
-      if (decodedToken.role === "ADMIN") {
+      if (decodedToken) {
         router.push("/dashboard?sucess=true&&redirect=true");
       } else {
         router.push("/login");

@@ -8,18 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { jwtDecode } from "jwt-decode"
 import {
-  Line,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  Line,AreaChart,Area,XAxis,YAxis, CartesianGrid,Tooltip,ResponsiveContainer,PieChart,Pie,Cell,
 } from "recharts"
 import {
   Settings,
@@ -153,14 +144,16 @@ export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState("6m")
   const router = useRouter()
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user")
-    if (!userData) {
-      router.push("/login")
-      return
-    }
-    setUser(JSON.parse(userData))
-  }, [router])
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    router.push("/login");
+    return;
+  }
+
+  const decoded = jwtDecode(token);
+  setUser(decoded);
+}, [router]);
 
   if (!user) {
     return (
@@ -214,7 +207,7 @@ export default function DashboardPage() {
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Bonjour, {user.name.split(" ")[0]} 👋</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Bonjour, {user?.email?.split("@")[0] ?? 'Admin'} 👋</h1>
                 <p className="text-gray-600 mt-2">
                   Voici un aperçu de vos réseaux 5G •{" "}
                   {new Date().toLocaleDateString("fr-FR", {
