@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useContext, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -11,46 +11,43 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Wifi, AlertCircle, CheckCircle } from "lucide-react"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import  AuthContext  from "@/context/AuthContext"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    fullName: "",
+    nomComplet: "",
     email: "",
+    role: "",
     password: "",
-    confirmPassword: "",
   })
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }))
-  }
+const {registerMutation} = useContext(AuthContext);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Les mots de passe ne correspondent pas")
-      setLoading(false)
-      return
+    const handleSubmit  = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        console.log("Données envoyées :", formData);
+        registerMutation.mutate(formData);
+        setSuccess(true);
     }
-
-    // Simulate API call
-    setTimeout(() => {
-      setSuccess(true)
-      setLoading(false)
-      setTimeout(() => {
-        router.push("/login")
-      }, 2000)
-    }, 1000)
-  }
+    
+    const handleChange = (e:React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    }
 
   if (success) {
     return (
@@ -61,7 +58,7 @@ export default function RegisterPage() {
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Inscription réussie !</h2>
               <p className="text-gray-600 mb-4">
-                Votre compte a été créé avec succès. Redirection vers la page de connexion...
+                Votre compte a été créé avec succès. Redirection vers la page d'accueil...
               </p>
             </div>
           </CardContent>
@@ -92,13 +89,13 @@ export default function RegisterPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="fullName">Nom complet</Label>
+              <Label htmlFor="nomComplet">Nom complet</Label>
               <Input
-                id="fullName"
-                name="fullName"
+                id="nomComplet"
+                name="nomComplet"
                 type="text"
                 placeholder="Jean Dupont"
-                value={formData.fullName}
+                value={formData.nomComplet}
                 onChange={handleChange}
                 required
               />
@@ -116,7 +113,25 @@ export default function RegisterPage() {
                 required
               />
             </div>
-
+              <div className="space-y-2">
+                <Label htmlFor="role">Rôle</Label>
+                <Select
+                  name="role"
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, role: value }))
+                  }
+                >
+                  <SelectTrigger id="role" className="w-full">
+                    <SelectValue placeholder="Sélectionnez un rôle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ADMIN">Administrateur</SelectItem>
+                    <SelectItem value="USER">Utilisateur</SelectItem>
+                    <SelectItem value="GUEST">Invité</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             <div className="space-y-2">
               <Label htmlFor="password">Mot de passe</Label>
               <Input
@@ -125,19 +140,6 @@ export default function RegisterPage() {
                 type="password"
                 placeholder="••••••••"
                 value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                value={formData.confirmPassword}
                 onChange={handleChange}
                 required
               />
