@@ -43,9 +43,9 @@ export const AuthProvider = ({ children }) => {
     },
     onSuccess: (data) => {
       setAuthTokens(data);
-      const decodedToken = jwtDecode(data.access);
+      const decodedToken = jwtDecode(data.token);
       setUser(decodedToken);
-      localStorage.setItem("token", JSON.stringify(data));
+      localStorage.setItem("token", JSON.stringify(data.token));
 
       if (decodedToken.role === "ADMIN") {
         router.push("/dashboard/admin?sucess=true&&redirect=true");
@@ -97,9 +97,9 @@ export const AuthProvider = ({ children }) => {
     },
     onSuccess: (data) => {
       setAuthTokens(data);
-      const decodedToken = jwtDecode(data.access);
+      const decodedToken = jwtDecode(data.token);
       setUser(decodedToken);
-      localStorage.setItem("token", JSON.stringify(data));
+      localStorage.setItem("token", JSON.stringify(data.token));
 
       if (decodedToken.role === "ADMIN") {
         router.push("/dashboard/admin?sucess=true&&redirect=true");
