@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 @RestController
-@RequestMapping("${api.prefix}/auth")
+@RequestMapping("${api.prefix}/attenuation")
 @RequiredArgsConstructor
 public class AttenuationController {
     private final AttenuationService attenuationService;

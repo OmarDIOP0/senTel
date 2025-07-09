@@ -43,29 +43,29 @@ public class ConfigurationController {
     @PostMapping
     public ResponseEntity<ApiResponse> createConfiguration(@RequestBody ConfigurationRequest request) {
         try {
-            Configuration configuration = configurationService.creerConfiguration(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(
-                    true,
-                    "Configuration créée avec succès",
-                    configuration
-            ));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
-                    false,
-                    e.getMessage(),
-                    null
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(
-                    false,
-                    "Erreur lors de la création de la configuration",
-                    e.getMessage()
-            ));
+                Configuration configuration = configurationService.creerConfiguration(request);
+                return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(
+                        true,
+                        "Configuration créée avec succès",
+                        configuration
+                ));
+            } catch (ResourceNotFoundException e) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
+                        false,
+                        e.getMessage(),
+                        null
+                ));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(
+                        false,
+                        "Erreur lors de la création de la configuration",
+                        e.getMessage()
+                ));
+            }
         }
-    }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse> updateConfiguration(@PathVariable Long id, @RequestBody ConfigurationRequest request) {
+        @PutMapping("/{id}")
+        public ResponseEntity<ApiResponse> updateConfiguration(@PathVariable Long id, @RequestBody ConfigurationRequest request) {
         try {
             Configuration updated = configurationService.modifierConfiguration(request, id);
             return ResponseEntity.ok(new ApiResponse(
