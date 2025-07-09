@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useContext, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -20,6 +20,7 @@ import {
   Menu,
   X,
 } from "lucide-react"
+import AuthContext from "@/context/AuthContext"
 
 const navigation = [
   { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
@@ -36,10 +37,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
 
-  const handleLogout = () => {
-    localStorage.removeItem("user")
-    router.push("/login")
-  }
+const {logoutUser} = useContext(AuthContext);
 
   return (
     <>
@@ -117,9 +115,9 @@ export function Sidebar() {
               <Button
                 variant="ghost"
                 className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={handleLogout}
+                onClick={logoutUser}
               >
-                <LogOut className="mr-3 h-4 w-4" />
+                <LogOut className="mr-3 h-4 w-4"/>
                 Se déconnecter
               </Button>
             </div>

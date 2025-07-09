@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Sidebar } from "@/components/layout/sidebar"
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { jwtDecode } from "jwt-decode"
+import { useAdminService } from "../../services/useAdminService"
 import {
   Line,AreaChart,Area,XAxis,YAxis, CartesianGrid,Tooltip,ResponsiveContainer,PieChart,Pie,Cell,
 } from "recharts"
@@ -29,6 +30,7 @@ import {
   Calendar,
   Target,
 } from "lucide-react"
+import AuthContext from "@/context/AuthContext"
 
 // Mock data améliorées
 const performanceData = [
@@ -140,20 +142,24 @@ const quickStats = [
 ]
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null)
+  // const [user, setUser] = useState<any>(null)
   const [timeRange, setTimeRange] = useState("6m")
   const router = useRouter()
 
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    router.push("/login");
-    return;
-  }
+  const { user } = useContext(AuthContext)
+  const {logoutUser} = useContext(AuthContext);
+  const { fetchAdminProfile } = useAdminService();
+const profileData = fetchAdminProfile.data?.data;
+// useEffect(() => {
+//   const token = localStorage.getItem("token");
+//   if (!token) {
+//     router.push("/login");
+//     return;
+//   }
 
-  const decoded = jwtDecode(token);
-  setUser(decoded);
-}, [router]);
+//   const decoded = jwtDecode(token);
+//   setUser(decoded);
+// }, [router]);
 
   if (!user) {
     return (
