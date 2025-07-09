@@ -129,23 +129,6 @@ export default function UtilisateursPage() {
   const [newRole, setNewRole] = useState("")
   const router = useRouter()
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user")
-    if (!userData) {
-      router.push("/login")
-      return
-    }
-    const parsedUser = JSON.parse(userData)
-    if (parsedUser.role !== "ADMIN") {
-      router.push("/dashboard")
-      return
-    }
-    setUser(parsedUser)
-  }, [router])
-
-  if (!user) {
-    return <div>Chargement...</div>
-  }
 
   // Filter users based on search term
   const filteredUsers = utilisateurs.filter(

@@ -72,19 +72,6 @@ export default function StatistiquesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("6mois")
   const router = useRouter()
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user")
-    if (!userData) {
-      router.push("/login")
-      return
-    }
-    setUser(JSON.parse(userData))
-  }, [router])
-
-  if (!user) {
-    return <div>Chargement...</div>
-  }
-
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />

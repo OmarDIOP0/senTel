@@ -76,18 +76,6 @@ export default function ProjetsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const router = useRouter()
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user")
-    if (!userData) {
-      router.push("/login")
-      return
-    }
-    setUser(JSON.parse(userData))
-  }, [router])
-
-  if (!user) {
-    return <div>Chargement...</div>
-  }
 
   // Filter projects based on search term
   const filteredProjets = projets.filter(

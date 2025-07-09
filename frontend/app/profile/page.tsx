@@ -27,22 +27,6 @@ export default function ProfilePage() {
     confirmPassword: "",
   })
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user")
-    if (!userData) {
-      router.push("/login")
-      return
-    }
-    const parsedUser = JSON.parse(userData)
-    setUser(parsedUser)
-    setFormData({
-      name: parsedUser.name,
-      email: parsedUser.email,
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    })
-  }, [router])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))

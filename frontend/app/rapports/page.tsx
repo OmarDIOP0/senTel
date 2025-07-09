@@ -91,18 +91,6 @@ export default function RapportsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const router = useRouter()
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user")
-    if (!userData) {
-      router.push("/login")
-      return
-    }
-    setUser(JSON.parse(userData))
-  }, [router])
-
-  if (!user) {
-    return <div>Chargement...</div>
-  }
 
   // Filter reports based on search term
   const filteredRapports = rapports.filter(

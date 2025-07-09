@@ -152,19 +152,6 @@ export default function NotificationsPage() {
   const [filterStatus, setFilterStatus] = useState("all")
   const router = useRouter()
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user")
-    if (!userData) {
-      router.push("/login")
-      return
-    }
-    setUser(JSON.parse(userData))
-  }, [router])
-
-  if (!user) {
-    return <div>Chargement...</div>
-  }
-
   // Filter notifications
   const filteredNotifications = notifications.filter((notification) => {
     const matchesSearch =

@@ -23,7 +23,7 @@ import {
 } from "lucide-react"
 
 // Mock data pour le profil utilisateur
-const getUserProfile = (id: string) => {
+const getUserProfile = (id) => {
   const profiles = {
     "1": {
       id: 1,
@@ -154,10 +154,10 @@ const getUserProfile = (id: string) => {
       ],
     },
   }
-  return profiles[id as keyof typeof profiles] || null
+  return profiles[id] || null
 }
 
-const getRoleBadge = (role: string) => {
+const getRoleBadge = (role) => {
   switch (role) {
     case "ADMIN":
       return (
@@ -185,7 +185,7 @@ const getRoleBadge = (role: string) => {
   }
 }
 
-const getStatusBadge = (status: string) => {
+const getStatusBadge = (status) => {
   switch (status) {
     case "ACTIVE":
       return <Badge className="bg-green-100 text-green-800">Actif</Badge>
@@ -198,7 +198,7 @@ const getStatusBadge = (status: string) => {
   }
 }
 
-const getActivityIcon = (type: string) => {
+const getActivityIcon = (type) => {
   switch (type) {
     case "configuration":
       return <Settings className="h-4 w-4 text-blue-500" />
@@ -216,7 +216,7 @@ export default function UserProfilePage() {
   const [profileUser, setProfileUser] = useState<any>(null)
   const router = useRouter()
   const params = useParams()
-  const userId = params.id as string
+  const userId = params.id
 
   useEffect(() => {
     const userData = localStorage.getItem("user")
@@ -345,7 +345,7 @@ export default function UserProfilePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {profileUser.recentActivity.map((activity: any) => (
+                    {profileUser.recentActivity.map((activity) => (
                       <div key={activity.id} className="flex items-start space-x-3">
                         <div className="flex-shrink-0 mt-1">{getActivityIcon(activity.type)}</div>
                         <div className="flex-1 min-w-0">
@@ -382,7 +382,7 @@ export default function UserProfilePage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {profileUser.configurations.map((config: any) => (
+                      {profileUser.configurations.map((config) => (
                         <TableRow key={config.id}>
                           <TableCell className="font-medium">#{config.id}</TableCell>
                           <TableCell>{config.project}</TableCell>
