@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -146,10 +146,14 @@ export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState("6m")
   const router = useRouter()
 
+
+
   const { user } = useContext(AuthContext)
   const {logoutUser} = useContext(AuthContext);
-  const { fetchAdminProfile } = useAdminService();
-const profileData = fetchAdminProfile.data?.data;
+  const { profileData, loading, error } = useAdminService();
+
+  if (loading) return <p>Chargement...</p>;
+  if (error) return <p>Erreur : {error}</p>;
 // useEffect(() => {
 //   const token = localStorage.getItem("token");
 //   if (!token) {
@@ -175,7 +179,7 @@ const profileData = fetchAdminProfile.data?.data;
     )
   }
 
-  const getActivityIcon = (type: string) => {
+  const getActivityIcon = (type) => {
     switch (type) {
       case "configuration":
         return <Settings className="h-4 w-4 text-blue-500" />
@@ -190,7 +194,7 @@ const profileData = fetchAdminProfile.data?.data;
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case "success":
         return "bg-green-100 border-green-200"
@@ -213,7 +217,7 @@ const profileData = fetchAdminProfile.data?.data;
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Bonjour, {user?.email?.split("@")[0] ?? 'Admin'} 👋</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Bonjour, {profileData?.email?.split("@")[0] ?? 'Admin'} 👋</h1>
                 <p className="text-gray-600 mt-2">
                   Voici un aperçu de vos réseaux 5G •{" "}
                   {new Date().toLocaleDateString("fr-FR", {

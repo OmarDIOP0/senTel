@@ -42,11 +42,13 @@ export const AuthProvider = ({ children }) => {
       return response.data;
     },
     onSuccess: (data) => {
-      setAuthTokens(data);
-      const decodedToken = jwtDecode(data.token);
-      setUser(decodedToken);
-      setAuthTokens(data.token); 
-      localStorage.setItem("token", JSON.stringify(data.token)); 
+      const tokenObject = { token: data.token };
+      setAuthTokens(tokenObject); // stocke un objet cohérent avec ce que tu attends
+      setUser(jwtDecode(data.token));
+      localStorage.setItem("token", JSON.stringify(tokenObject)); // ✅ EN OBJET
+
+      router.push("/dashboard?sucess=true&&redirect=true");
+      showAlert("Login Success 🚀✅", "success");
 
       if (decodedToken) {
         router.push("/dashboard?sucess=true&&redirect=true");
@@ -97,10 +99,13 @@ export const AuthProvider = ({ children }) => {
       return response.data;
     },
     onSuccess: (data) => {
-      setAuthTokens(data);
-      const decodedToken = jwtDecode(data.token);
-      setUser(decodedToken);
-      localStorage.setItem("token", JSON.stringify(data.token));
+        const tokenObject = { token: data.token };
+        setAuthTokens(tokenObject); // stocke un objet cohérent avec ce que tu attends
+        setUser(jwtDecode(data.token));
+        localStorage.setItem("token", JSON.stringify(tokenObject)); // ✅ EN OBJET
+
+        router.push("/dashboard?sucess=true&&redirect=true");
+        showAlert("Login Success 🚀✅", "success");
 
       if (decodedToken.role === "ADMIN") {
         router.push("/dashboard?sucess=true&&redirect=true");

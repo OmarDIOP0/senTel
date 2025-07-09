@@ -1,35 +1,47 @@
-import { useQuery } from "@tanstack/react-query";
-import API_URL from "../utils/apiUrl";
-import {ApiResponse} from "../types/ApiResponse";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import API_URL from "../utils/apiUrl";
+import { AdminProfile } from "../types/Admin";
 import showAlert from "../utils/alert";
-import {AdminProfile} from "../types/Admin";
+
 export const useAdminService = () => {
-    const fetchAdminProfile = useQuery<ApiResponse<AdminProfile>>({
-        queryKey: ["adminProfile"],
-        queryFn: async () => {
-            const authTokens = JSON.parse(localStorage.getItem("token"));
-            const response = await axios.get(`${API_URL}/auth/profile`, {
-                withCredentials: true,
-                    headers: {
-                    Authorization: `Bearer ${authTokens?.access}`,
-                    Accept: "application/json",
-                    },
-            });
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-            if (!response.ok) {
-                throw new Error("Failed to fetch profile");
-            }
-            return response.json();
+  const fetchAdminProfile = async () => {
+    try {
+      const tokenStr = localStorage.getItem("token");
+      const authTokens = tokenStr ? JSON.parse(tokenStr) : null;
+
+      if (!authTokens?.token) {
+        throw new Error("Token d'authentification non trouvé");
+      }
+
+      const response = await axios.get(`${API_URL}/auth/profile`, {
+        headers: {
+          Authorization: `Bearer ${authTokens.token}`,
+          Accept: "application/json",
         },
-        onSuccess: (data) => {
-      console.log("Admin profile fetched successfully:", data);
-    },
-    onError: (error) => {
-      showAlert("Erreur lors de la récupération du profile admin", "error");
-    },
-    });
+      });
 
+      setProfileData(response.data.data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Erreur API:", err);
+      setError("Erreur lors du chargement du profil admin");
+      setLoading(false);
+      showAlert("Erreur lors de la récupération du profil admin", "error");
+    }
+  };
 
-      return { fetchAdminProfile };
-}
+  useEffect(() => {
+    fetchAdminProfile();
+  }, []);
+
+  return {
+    profileData,
+    loading,
+    error,
+  };
+};
