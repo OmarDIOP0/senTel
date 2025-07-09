@@ -16,7 +16,7 @@ export const createEmetteur = async (data) => {
 };
 
 export const updateEmetteur = async (data) => {
-  const response = await authorizedApi().put("/emetteur/", data);
+  const response = await authorizedApi().put("/emetteur", data);
   return response.data;
 };
 

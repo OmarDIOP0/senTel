@@ -16,7 +16,7 @@ export const createAttenuation = async (data) => {
 };
 
 export const updateAttenuation = async (data) => {
-  const response = await authorizedApi().put("/attenuation/", data);
+  const response = await authorizedApi().put("/attenuation", data);
   return response.data;
 };
 

@@ -16,7 +16,7 @@ export const createConfiguration = async (data) => {
 };
 
 export const updateConfiguration = async (data) => {
-  const response = await authorizedApi().put("/configuration/", data);
+  const response = await authorizedApi().put("/configuration", data);
   return response.data;
 };
 
