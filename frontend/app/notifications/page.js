@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useQuery } from "@tanstack/react-query"
 import {
   Bell,
   Search,
@@ -19,92 +20,9 @@ import {
   BookMarkedIcon as MarkAsUnread,
   Settings,
 } from "lucide-react"
+import { getAllNotifications, markNotificationAsRead } from "@/services/notificationService"
 
-// Mock data
-const notifications = [
-  {
-    id: 1,
-    title: "Nouveau rapport généré",
-    description: "Le rapport pour la configuration #127 du Projet Alpha a été généré avec succès",
-    type: "success",
-    status: "NON_LU",
-    createdAt: "2024-01-15 14:30",
-    relatedId: 127,
-    relatedType: "configuration",
-  },
-  {
-    id: 2,
-    title: "Configuration en attente de validation",
-    description: "La configuration #125 du Projet Beta nécessite une validation d'ingénieur",
-    type: "warning",
-    status: "NON_LU",
-    createdAt: "2024-01-15 12:15",
-    relatedId: 125,
-    relatedType: "configuration",
-  },
-  {
-    id: 3,
-    title: "Nouvel utilisateur ajouté",
-    description: "Thomas Bernard a été ajouté au système avec le rôle CLIENT",
-    type: "info",
-    status: "LU",
-    createdAt: "2024-01-15 10:45",
-    relatedId: 5,
-    relatedType: "user",
-  },
-  {
-    id: 4,
-    title: "Rapport validé",
-    description: "Le rapport #23 du Projet Gamma a été validé par l'équipe technique",
-    type: "success",
-    status: "LU",
-    createdAt: "2024-01-14 16:20",
-    relatedId: 23,
-    relatedType: "rapport",
-  },
-  {
-    id: 5,
-    title: "Maintenance programmée",
-    description: "Maintenance système prévue ce weekend de 2h à 6h du matin",
-    type: "warning",
-    status: "NON_LU",
-    createdAt: "2024-01-14 09:00",
-    relatedId: null,
-    relatedType: "system",
-  },
-  {
-    id: 6,
-    title: "Performance dégradée détectée",
-    description: "La configuration #118 montre des performances inférieures à 70%",
-    type: "error",
-    status: "NON_LU",
-    createdAt: "2024-01-13 15:30",
-    relatedId: 118,
-    relatedType: "configuration",
-  },
-  {
-    id: 7,
-    title: "Nouveau projet créé",
-    description: "Le Projet Delta a été créé et est maintenant disponible",
-    type: "info",
-    status: "LU",
-    createdAt: "2024-01-13 11:15",
-    relatedId: 4,
-    relatedType: "project",
-  },
-  {
-    id: 8,
-    title: "Sauvegarde automatique effectuée",
-    description: "Sauvegarde quotidienne des données terminée avec succès",
-    type: "success",
-    status: "LU",
-    createdAt: "2024-01-13 02:00",
-    relatedId: null,
-    relatedType: "system",
-  },
-]
-
-const getNotificationIcon = (type: string) => {
+const getNotificationIcon = (type) => {
   switch (type) {
     case "success":
       return <CheckCircle className="h-5 w-5 text-green-500" />
@@ -119,7 +37,7 @@ const getNotificationIcon = (type: string) => {
   }
 }
 
-const getStatusBadge = (status: string) => {
+const getStatusBadge = (status) => {
   switch (status) {
     case "NON_LU":
       return <Badge className="bg-blue-100 text-blue-800">Non lu</Badge>
@@ -130,7 +48,7 @@ const getStatusBadge = (status: string) => {
   }
 }
 
-const getTypeBadge = (type: string) => {
+const getTypeBadge = (type) => {
   switch (type) {
     case "success":
       return <Badge className="bg-green-100 text-green-800">Succès</Badge>
@@ -146,16 +64,23 @@ const getTypeBadge = (type: string) => {
 }
 
 export default function NotificationsPage() {
-  const [user, setUser] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("all")
   const [filterStatus, setFilterStatus] = useState("all")
   const router = useRouter()
 
+  // Fetch notifications from API
+  const { data: notificationsData, isLoading, refetch } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: getAllNotifications,
+  })
+
+  const notifications = notificationsData?.data || []
+
   // Filter notifications
   const filteredNotifications = notifications.filter((notification) => {
     const matchesSearch =
-      notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      notification.libelle.toLowerCase().includes(searchTerm.toLowerCase()) ||
       notification.description.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesType = filterType === "all" || notification.type === filterType
@@ -165,6 +90,38 @@ export default function NotificationsPage() {
   })
 
   const unreadCount = notifications.filter((n) => n.status === "NON_LU").length
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await markNotificationAsRead(id)
+      refetch()
+    } catch (error) {
+      console.error("Error marking notification as read:", error)
+    }
+  }
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const unreadNotifications = notifications.filter((n) => n.status === "NON_LU")
+      await Promise.all(unreadNotifications.map(n => markNotificationAsRead(n.id)))
+      refetch()
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64 p-8">
+          <div className="flex justify-center items-center h-full">
+            <p>Chargement des notifications...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -183,7 +140,7 @@ export default function NotificationsPage() {
                 <Settings className="mr-2 h-4 w-4" />
                 Paramètres
               </Button>
-              <Button>Marquer tout comme lu</Button>
+              <Button onClick={handleMarkAllAsRead}>Marquer tout comme lu</Button>
             </div>
           </div>
 
@@ -289,6 +246,7 @@ export default function NotificationsPage() {
                 className={`hover:shadow-md transition-shadow ${
                   notification.status === "NON_LU" ? "border-l-4 border-l-blue-500 bg-blue-50/30" : ""
                 }`}
+                onClick={() => notification.status === "NON_LU" && handleMarkAsRead(notification.id)}
               >
                 <CardContent className="pt-6">
                   <div className="flex items-start space-x-4">
@@ -296,14 +254,14 @@ export default function NotificationsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="text-lg font-medium text-gray-900 mb-1">{notification.title}</h3>
+                          <h3 className="text-lg font-medium text-gray-900 mb-1">{notification.libelle}</h3>
                           <p className="text-gray-600 mb-3">{notification.description}</p>
                           <div className="flex items-center space-x-3 text-sm text-gray-500">
                             <div className="flex items-center">
                               <Clock className="w-4 h-4 mr-1" />
-                              {notification.createdAt}
+                              {new Date(notification.date).toLocaleString()}
                             </div>
-                            {notification.relatedId && <div>ID: #{notification.relatedId}</div>}
+                            {notification.configuration?.id && <div>ID: #{notification.configuration.id}</div>}
                           </div>
                         </div>
                         <div className="flex items-center space-x-2 ml-4">

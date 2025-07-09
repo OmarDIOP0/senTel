@@ -136,7 +136,7 @@ export default function AdminProfilePage() {
   })
 
   useEffect(() => {
-    const userData = localStorage.getItem("user")
+    const userData = localStorage.getItem("token")
     if (!userData) {
       router.push("/login")
       return

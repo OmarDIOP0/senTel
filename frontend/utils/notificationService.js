@@ -20,6 +20,11 @@ export const updateNotification = async (data) => {
   return response.data;
 };
 
+export const markNotificationAsRead = async (id) => {
+  const response = await authorizedApi().get(`/notification/${id}/mark-as-read`)
+  return response.data
+}
+
 export const deleteNotification = async (id) => {
   const response = await authorizedApi().delete(`/notification/${id}`);
   return response.data;
