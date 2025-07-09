@@ -24,3 +24,7 @@ export const deleteConfiguration = async (id) => {
   const response = await authorizedApi().delete(`/configuration/${id}`);
   return response.data;
 };
+export const getConfigurationByProjet = async (id) => {
+  const response = await authorizedApi().get(`/configuration/projet/${id}`);
+  return response.data;
+};
