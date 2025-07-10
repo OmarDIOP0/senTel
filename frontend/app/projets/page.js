@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useQuery } from "@tanstack/react-query"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,53 +11,9 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Plus, Search, MoreHorizontal, Edit, Trash2, FolderOpen, Settings } from "lucide-react"
+import { getAllProjets, deleteProjet } from "@/services/projetService"
 
-// Mock data
-const projets = [
-  {
-    id: 1,
-    name: "Projet Alpha",
-    description:
-      "Déploiement de réseau 5G en zone urbaine dense avec couverture optimisée pour les bâtiments de grande hauteur",
-    configurationsCount: 15,
-    createdAt: "2024-01-10",
-    status: "ACTIVE",
-  },
-  {
-    id: 2,
-    name: "Projet Beta",
-    description: "Extension de couverture 5G en zone rurale avec focus sur la portée longue distance",
-    configurationsCount: 8,
-    createdAt: "2024-01-08",
-    status: "ACTIVE",
-  },
-  {
-    id: 3,
-    name: "Projet Gamma",
-    description: "Réseau 5G industriel pour zone manufacturière avec exigences de faible latence",
-    configurationsCount: 12,
-    createdAt: "2024-01-05",
-    status: "PENDING",
-  },
-  {
-    id: 4,
-    name: "Projet Delta",
-    description: "Couverture 5G pour campus universitaire avec haute densité d'utilisateurs",
-    configurationsCount: 6,
-    createdAt: "2024-01-03",
-    status: "COMPLETED",
-  },
-  {
-    id: 5,
-    name: "Projet Epsilon",
-    description: "Réseau 5G pour centre commercial avec besoins de capacité élevée",
-    configurationsCount: 3,
-    createdAt: "2024-01-01",
-    status: "INACTIVE",
-  },
-]
-
-const getStatusBadge = (status: string) => {
+const getStatusBadge = (status) => {
   switch (status) {
     case "ACTIVE":
       return <Badge className="bg-green-100 text-green-800">Actif</Badge>
@@ -72,18 +29,46 @@ const getStatusBadge = (status: string) => {
 }
 
 export default function ProjetsPage() {
-  const [user, setUser] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const router = useRouter()
 
+  // Fetch projects from API
+  const { data: projetsData, isLoading, refetch } = useQuery({
+    queryKey: ["projets"],
+    queryFn: getAllProjets,
+  })
+
+  const projets = projetsData?.data || []
+
+  // Handle project deletion
+  const handleDelete = async (id) => {
+    try {
+      await deleteProjet(id)
+      refetch()
+    } catch (error) {
+      console.error("Error deleting project:", error)
+    }
+  }
 
   // Filter projects based on search term
   const filteredProjets = projets.filter(
     (projet) =>
-      projet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      projet.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      projet.status.toLowerCase().includes(searchTerm.toLowerCase()),
+      projet.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      projet.description.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64 p-8">
+          <div className="flex justify-center items-center h-full">
+            <p>Chargement des projets...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -142,7 +127,7 @@ export default function ProjetsPage() {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Configurations</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {projets.reduce((sum, p) => sum + p.configurationsCount, 0)}
+                      {projets.reduce((sum, p) => sum + (p.configurations?.length || 0), 0)}
                     </p>
                   </div>
                 </div>
@@ -172,7 +157,7 @@ export default function ProjetsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Rechercher par nom, description ou statut..."
+                  placeholder="Rechercher par nom ou description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -188,10 +173,10 @@ export default function ProjetsPage() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg">{projet.name}</CardTitle>
+                      <CardTitle className="text-lg">{projet.nom}</CardTitle>
                       <div className="flex items-center space-x-2 mt-2">
-                        {getStatusBadge(projet.status)}
-                        <Badge variant="outline">{projet.configurationsCount} config(s)</Badge>
+                        {getStatusBadge(projet.status || "ACTIVE")}
+                        <Badge variant="outline">{projet.configurations?.length || 0} config(s)</Badge>
                       </div>
                     </div>
                     <DropdownMenu>
@@ -201,11 +186,11 @@ export default function ProjetsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(`/projets/edit/${projet.id}`)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Modifier
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(projet.id)}>
                           <Trash2 className="mr-2 h-4 w-4" />
                           Supprimer
                         </DropdownMenuItem>
@@ -216,7 +201,7 @@ export default function ProjetsPage() {
                 <CardContent>
                   <CardDescription className="text-sm text-gray-600 mb-4">{projet.description}</CardDescription>
                   <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Créé le {projet.createdAt}</span>
+                    <span>Créé le {new Date(projet.createdAt).toLocaleDateString()}</span>
                     <Link href={`/configurations?project=${projet.id}`}>
                       <Button variant="outline" size="sm">
                         Voir configurations
