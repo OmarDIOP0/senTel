@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react"
 import AuthContext from "@/context/AuthContext"
+import { useAdminService } from "@/services/useAdminService"
 
 const navigation = [
   { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
@@ -38,6 +39,18 @@ export function Sidebar() {
   const router = useRouter()
 
 const {logoutUser} = useContext(AuthContext);
+  // Define the expected type for profileData
+  type ProfileData = {
+    nomComplet?: string
+    email?: string
+    // add other properties if needed
+  }
+  
+    const { profileData, loading, error } = useAdminService() as {
+      profileData: ProfileData | null,
+      loading: boolean,
+      error: any
+    };
 
   return (
     <>
@@ -99,8 +112,8 @@ const {logoutUser} = useContext(AuthContext);
                 <User className="h-5 w-5 text-gray-600" />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">Admin User</p>
-                <p className="text-xs text-gray-500">admin@sentel.com</p>
+                <p className="text-sm font-medium text-gray-900">{profileData?.nomComplet}</p>
+                <p className="text-xs text-gray-500">{profileData?.email}</p>
               </div>
             </div>
             <div className="space-y-2">

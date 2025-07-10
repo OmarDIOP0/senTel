@@ -23,47 +23,7 @@ const configurations = [
     createdAt: "2024-01-15",
     emitter: { power: 20, frequency: 3.5 },
     receiver: { sensitivity: -95, gain: 15 },
-  },
-  {
-    id: 2,
-    project: "Projet Alpha",
-    distance: 1.8,
-    bandwidth: 50,
-    status: "INACTIVE",
-    createdAt: "2024-01-14",
-    emitter: { power: 15, frequency: 2.6 },
-    receiver: { sensitivity: -90, gain: 12 },
-  },
-  {
-    id: 3,
-    project: "Projet Beta",
-    distance: 3.2,
-    bandwidth: 200,
-    status: "ACTIVE",
-    createdAt: "2024-01-13",
-    emitter: { power: 25, frequency: 3.7 },
-    receiver: { sensitivity: -100, gain: 18 },
-  },
-  {
-    id: 4,
-    project: "Projet Beta",
-    distance: 0.9,
-    bandwidth: 75,
-    status: "PENDING",
-    createdAt: "2024-01-12",
-    emitter: { power: 18, frequency: 2.1 },
-    receiver: { sensitivity: -85, gain: 10 },
-  },
-  {
-    id: 5,
-    project: "Projet Gamma",
-    distance: 4.1,
-    bandwidth: 150,
-    status: "ACTIVE",
-    createdAt: "2024-01-11",
-    emitter: { power: 30, frequency: 3.9 },
-    receiver: { sensitivity: -105, gain: 20 },
-  },
+  }
 ]
 
 const getStatusBadge = (status: string) => {
@@ -84,20 +44,6 @@ export default function ConfigurationsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const router = useRouter()
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user")
-    if (!userData) {
-      router.push("/login")
-      return
-    }
-    setUser(JSON.parse(userData))
-  }, [router])
-
-  if (!user) {
-    return <div>Chargement...</div>
-  }
-
-  // Group configurations by project
   const groupedConfigurations = configurations.reduce(
     (acc, config) => {
       if (!acc[config.project]) {
