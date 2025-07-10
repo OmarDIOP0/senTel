@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Sidebar } from "@/components/layout/sidebar"
@@ -28,6 +27,8 @@ import {
 } from "lucide-react"
 import { getAllClients, updateClient } from "@/services/clientService"
 import { toast } from "@/components/ui/use-toast"
+import { useEffect, useState } from "react";
+import showAlert from "@/utils/alert";
 
 const getRoleBadge = (role) => {
   switch (role) {
@@ -69,35 +70,57 @@ export default function UtilisateursPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [newRole, setNewRole] = useState("")
   const router = useRouter()
-  const queryClient = useQueryClient()
 
-  // Fetch users from API
-  const { data: usersData, isLoading } = useQuery({
-    queryKey: ['clients'],
-    queryFn: getAllClients,
-  })
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Update user role mutation
-  const updateUserMutation = useMutation({
-    mutationFn: (updatedUser) => updateClient(updatedUser),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['clients'])
-      toast({
-        title: "Succès",
-        description: "Le rôle de l'utilisateur a été mis à jour",
-      })
-      setIsEditDialogOpen(false)
-    },
-    onError: (error) => {
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la mise à jour",
-        variant: "destructive",
-      })
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const res = await getAllClients();
+        setClients(res.data); // car tu renvoies response.data
+      } catch (err) {
+        console.error(err);
+        setError("Erreur lors du chargement des clients");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClients();
+  }, []);
+
+  const handleUpdateClient = async (client) => {
+    try {
+      await updateClient(client);
+      showAlert("Client mis à jour ✅", "success");
+
+      // Refetch
+      const res = await getAllClients();
+      setClients(res.data);
+    } catch (err) {
+      console.error("Erreur update:", err);
+      showAlert("Erreur de mise à jour ❌", "error");
     }
-  })
+  };
 
-  const utilisateurs = usersData?.data || []
+  if (loading) return <p>Chargement...</p>;
+  if (error) return <p>{error}</p>;
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Liste des clients</h1>
+      {clients.map((client) => (
+        <div key={client.id} className="mb-4 border p-4 rounded shadow-sm">
+          <h2 className="text-lg font-semibold">{client.nom}</h2>
+          <p>Email: {client.email}</p>
+          <Button onClick={() => handleUpdateClient(client)}>Mettre à jour</Button>
+        </div>
+      ))}
+    </div>
+  );
+
 
   // Filter users based on search term
   const filteredUsers = utilisateurs.filter(

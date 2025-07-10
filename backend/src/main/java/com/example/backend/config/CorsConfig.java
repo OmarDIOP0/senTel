@@ -16,20 +16,12 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
+        registry.addMapping("/**")  // Au lieu de "/api/**"
                 .allowedOrigins("http://localhost:3000", "http://127.0.0.1:3000")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);
-
-        registry.addMapping("/swagger-ui/**")
-                .allowedOrigins("*")
-                .allowedMethods("*");
-
-        registry.addMapping("/v3/api-docs/**")
-                .allowedOrigins("*")
-                .allowedMethods("*");
     }
 
     @Bean
@@ -42,9 +34,7 @@ public class CorsConfig implements WebMvcConfigurer {
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
-        source.registerCorsConfiguration("/swagger-ui/**", configuration);
-        source.registerCorsConfiguration("/v3/api-docs/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);  // Au lieu de "/api/**"
         return source;
     }
 }

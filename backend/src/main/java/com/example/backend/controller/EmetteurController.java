@@ -17,6 +17,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("${api.prefix}/emetteur")
+@CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"},
+        allowedHeaders = "*",
+        allowCredentials = "true")
 public class EmetteurController {
     private final EmetteurService emetteurService;
     @GetMapping

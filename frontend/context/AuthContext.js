@@ -23,12 +23,18 @@ export const AuthProvider = ({ children }) => {
     return null;
   });
 
-  const [user, setUser] = useState(() => {
-    if (typeof window !== "undefined" && localStorage.getItem("token")) {
-        return jwtDecode(JSON.parse(localStorage.getItem("token"))); 
+const [user, setUser] = useState(() => {
+  if (typeof window !== "undefined" && localStorage.getItem("token")) {
+    try {
+      const parsed = JSON.parse(localStorage.getItem("token"));
+      return parsed?.token ? jwtDecode(parsed.token) : null;
+    } catch (e) {
+      console.error("Erreur lors du décodage du token :", e);
+      return null;
     }
-    return null;
-  });
+  }
+  return null;
+});
 
   const [loading, setLoading] = useState(true);
 

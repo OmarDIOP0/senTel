@@ -6,9 +6,11 @@ const getAuthHeader = () => {
   const token = tokenStr ? JSON.parse(tokenStr) : null;
   return {
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token.token}`,
+      'Content-Type': 'application/json',
       Accept: "application/json",
     },
+    withCredentials: true,
   };
 };
 
