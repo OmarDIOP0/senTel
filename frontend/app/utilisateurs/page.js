@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,62 +26,10 @@ import {
   Mail,
   Calendar,
 } from "lucide-react"
+import { getAllClients, updateClient } from "@/services/clientService"
+import { toast } from "@/components/ui/use-toast"
 
-// Mock data
-const utilisateurs = [
-  {
-    id: 1,
-    name: "Jean Dupont",
-    email: "jean.dupont@sentel.com",
-    role: "ADMIN",
-    status: "ACTIVE",
-    lastLogin: "2024-01-15 14:30",
-    createdAt: "2024-01-01",
-    configurationsCount: 25,
-  },
-  {
-    id: 2,
-    name: "Marie Martin",
-    email: "marie.martin@sentel.com",
-    role: "INGENIEUR",
-    status: "ACTIVE",
-    lastLogin: "2024-01-15 09:15",
-    createdAt: "2024-01-03",
-    configurationsCount: 18,
-  },
-  {
-    id: 3,
-    name: "Pierre Durand",
-    email: "pierre.durand@client.com",
-    role: "CLIENT",
-    status: "ACTIVE",
-    lastLogin: "2024-01-14 16:45",
-    createdAt: "2024-01-05",
-    configurationsCount: 8,
-  },
-  {
-    id: 4,
-    name: "Sophie Leroy",
-    email: "sophie.leroy@sentel.com",
-    role: "INGENIEUR",
-    status: "INACTIVE",
-    lastLogin: "2024-01-10 11:20",
-    createdAt: "2024-01-02",
-    configurationsCount: 12,
-  },
-  {
-    id: 5,
-    name: "Thomas Bernard",
-    email: "thomas.bernard@client.com",
-    role: "CLIENT",
-    status: "PENDING",
-    lastLogin: "Jamais connecté",
-    createdAt: "2024-01-14",
-    configurationsCount: 0,
-  },
-]
-
-const getRoleBadge = (role: string) => {
+const getRoleBadge = (role) => {
   switch (role) {
     case "ADMIN":
       return (
@@ -108,47 +57,84 @@ const getRoleBadge = (role: string) => {
   }
 }
 
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "ACTIVE":
-      return <Badge className="bg-green-100 text-green-800">Actif</Badge>
-    case "INACTIVE":
-      return <Badge variant="secondary">Inactif</Badge>
-    case "PENDING":
-      return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
-    default:
-      return <Badge variant="outline">{status}</Badge>
-  }
+const getStatusBadge = (actif) => {
+  return actif 
+    ? <Badge className="bg-green-100 text-green-800">Actif</Badge>
+    : <Badge variant="secondary">Inactif</Badge>
 }
 
 export default function UtilisateursPage() {
-  const [user, setUser] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [selectedUser, setSelectedUser] = useState(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [newRole, setNewRole] = useState("")
   const router = useRouter()
+  const queryClient = useQueryClient()
 
+  // Fetch users from API
+  const { data: usersData, isLoading } = useQuery({
+    queryKey: ['clients'],
+    queryFn: getAllClients,
+  })
+
+  // Update user role mutation
+  const updateUserMutation = useMutation({
+    mutationFn: (updatedUser) => updateClient(updatedUser),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['clients'])
+      toast({
+        title: "Succès",
+        description: "Le rôle de l'utilisateur a été mis à jour",
+      })
+      setIsEditDialogOpen(false)
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour",
+        variant: "destructive",
+      })
+    }
+  })
+
+  const utilisateurs = usersData?.data || []
 
   // Filter users based on search term
   const filteredUsers = utilisateurs.filter(
     (utilisateur) =>
-      utilisateur.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      utilisateur.nomComplet.toLowerCase().includes(searchTerm.toLowerCase()) ||
       utilisateur.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      utilisateur.role.toLowerCase().includes(searchTerm.toLowerCase()),
+      utilisateur.role.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleEditRole = (utilisateur: any) => {
+  const handleEditRole = (utilisateur) => {
     setSelectedUser(utilisateur)
     setNewRole(utilisateur.role)
     setIsEditDialogOpen(true)
   }
 
   const handleSaveRole = () => {
-    // Ici on ferait l'appel API pour modifier le rôle
-    console.log(`Modifier le rôle de ${selectedUser.name} vers ${newRole}`)
-    setIsEditDialogOpen(false)
-    setSelectedUser(null)
+    if (!selectedUser) return
+    
+    const updatedUser = {
+      ...selectedUser,
+      role: newRole
+    }
+    
+    updateUserMutation.mutate(updatedUser)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64 p-8">
+          <div className="flex justify-center items-center h-full">
+            <p>Chargement des utilisateurs...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -266,7 +252,7 @@ export default function UtilisateursPage() {
                       <TableRow key={utilisateur.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{utilisateur.name}</div>
+                            <div className="font-medium">{utilisateur.nomComplet}</div>
                             <div className="text-sm text-gray-500 flex items-center">
                               <Mail className="w-3 h-3 mr-1" />
                               {utilisateur.email}
@@ -274,14 +260,14 @@ export default function UtilisateursPage() {
                           </div>
                         </TableCell>
                         <TableCell>{getRoleBadge(utilisateur.role)}</TableCell>
-                        <TableCell>{getStatusBadge(utilisateur.status)}</TableCell>
-                        <TableCell className="text-sm">{utilisateur.lastLogin}</TableCell>
+                        <TableCell>{getStatusBadge(utilisateur.actif)}</TableCell>
+                        <TableCell className="text-sm">Jamais connecté</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{utilisateur.configurationsCount}</Badge>
+                          <Badge variant="outline">{utilisateur.configurations?.length || 0}</Badge>
                         </TableCell>
                         <TableCell className="text-sm flex items-center">
                           <Calendar className="w-3 h-3 mr-1" />
-                          {utilisateur.createdAt}
+                          {new Date(utilisateur.createdAt).toLocaleDateString()}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -323,7 +309,7 @@ export default function UtilisateursPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Modifier le rôle utilisateur</DialogTitle>
-                <DialogDescription>Modifier le rôle de {selectedUser?.name}</DialogDescription>
+                <DialogDescription>Modifier le rôle de {selectedUser?.nomComplet}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -340,10 +326,19 @@ export default function UtilisateursPage() {
                   </Select>
                 </div>
                 <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsEditDialogOpen(false)}
+                    disabled={updateUserMutation.isLoading}
+                  >
                     Annuler
                   </Button>
-                  <Button onClick={handleSaveRole}>Sauvegarder</Button>
+                  <Button 
+                    onClick={handleSaveRole}
+                    disabled={updateUserMutation.isLoading}
+                  >
+                    {updateUserMutation.isLoading ? "Enregistrement..." : "Sauvegarder"}
+                  </Button>
                 </div>
               </div>
             </DialogContent>
