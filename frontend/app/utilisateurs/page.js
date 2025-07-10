@@ -1,7 +1,6 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,7 +25,6 @@ import {
   Calendar,
 } from "lucide-react"
 import { getAllClients, updateClient } from "@/services/clientService"
-import { toast } from "@/components/ui/use-toast"
 import { useEffect, useState } from "react";
 import showAlert from "@/utils/alert";
 
@@ -71,63 +69,61 @@ export default function UtilisateursPage() {
   const [newRole, setNewRole] = useState("")
   const router = useRouter()
 
-  const [clients, setClients] = useState([]);
+  const [utilisateurs, setUtilisateurs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const res = await getAllClients();
-        setClients(res.data); // car tu renvoies response.data
-      } catch (err) {
-        console.error(err);
-        setError("Erreur lors du chargement des clients");
-      } finally {
-        setLoading(false);
-      }
-    };
+   const fetchClients = async () => {
+  try {
+    const response = await getAllClients();
+    if (Array.isArray(response.data)) {
+      setUtilisateurs(response.data);
+    } else if (Array.isArray(response.data.data)) {
+      setUtilisateurs(response.data.data);
+    } else {
+      console.error("Données inattendues : ", response);
+      setUtilisateurs([]);
+      setError("Format inattendu des utilisateurs");
+    }
+  } catch (err) {
+    console.error(err);
+    setError("Erreur lors du chargement des clients");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
     fetchClients();
   }, []);
 
-  const handleUpdateClient = async (client) => {
+  const handleUpdateClient = async (updatedUser) => {
+    setIsUpdating(true);
     try {
-      await updateClient(client);
+      await updateClient(updatedUser);
+      // Update local state with the new user data
+      setUtilisateurs(prev => prev.map(user => 
+        user.id === updatedUser.id ? updatedUser : user
+      ));
       showAlert("Client mis à jour ✅", "success");
-
-      // Refetch
-      const res = await getAllClients();
-      setClients(res.data);
+      setIsEditDialogOpen(false);
     } catch (err) {
       console.error("Erreur update:", err);
       showAlert("Erreur de mise à jour ❌", "error");
+    } finally {
+      setIsUpdating(false);
     }
   };
-
-  if (loading) return <p>Chargement...</p>;
-  if (error) return <p>{error}</p>;
-
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Liste des clients</h1>
-      {clients.map((client) => (
-        <div key={client.id} className="mb-4 border p-4 rounded shadow-sm">
-          <h2 className="text-lg font-semibold">{client.nom}</h2>
-          <p>Email: {client.email}</p>
-          <Button onClick={() => handleUpdateClient(client)}>Mettre à jour</Button>
-        </div>
-      ))}
-    </div>
-  );
-
 
   // Filter users based on search term
   const filteredUsers = utilisateurs.filter(
     (utilisateur) =>
-      utilisateur.nomComplet.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      utilisateur.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      utilisateur.role.toLowerCase().includes(searchTerm.toLowerCase())
+      utilisateur.nomComplet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      utilisateur.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      utilisateur.role?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handleEditRole = (utilisateur) => {
@@ -144,16 +140,29 @@ export default function UtilisateursPage() {
       role: newRole
     }
     
-    updateUserMutation.mutate(updatedUser)
+    handleUpdateClient(updatedUser);
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
         <div className="flex-1 lg:ml-64 p-8">
           <div className="flex justify-center items-center h-full">
             <p>Chargement des utilisateurs...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64 p-8">
+          <div className="flex justify-center items-center h-full">
+            <p>{error}</p>
           </div>
         </div>
       </div>
@@ -352,15 +361,15 @@ export default function UtilisateursPage() {
                   <Button 
                     variant="outline" 
                     onClick={() => setIsEditDialogOpen(false)}
-                    disabled={updateUserMutation.isLoading}
+                    disabled={isUpdating}
                   >
                     Annuler
                   </Button>
                   <Button 
                     onClick={handleSaveRole}
-                    disabled={updateUserMutation.isLoading}
+                    disabled={isUpdating}
                   >
-                    {updateUserMutation.isLoading ? "Enregistrement..." : "Sauvegarder"}
+                    {isUpdating ? "Enregistrement..." : "Sauvegarder"}
                   </Button>
                 </div>
               </div>

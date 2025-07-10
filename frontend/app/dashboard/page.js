@@ -152,6 +152,8 @@ export default function DashboardPage() {
   const {logoutUser} = useContext(AuthContext);
   const { profileData, loading, error } = useAdminService();
 
+
+
   if (error) return <p>Erreur : {error}</p>;
 
   if (!profileData) {
