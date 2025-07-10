@@ -16,7 +16,7 @@ export const createProjet = async (data) => {
 };
 
 export const updateProjet = async (data) => {
-  const response = await authorizedApi().put("/projet/", data);
+  const response = await authorizedApi().put("/projet", data);
   return response.data;
 };
 

@@ -1,16 +1,15 @@
 package com.example.backend.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class Emetteur {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

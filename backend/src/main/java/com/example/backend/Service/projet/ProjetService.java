@@ -23,12 +23,16 @@ public class ProjetService implements IProjetService{
     public Projet addProjet(ProjetRequest projet) {
         Projet existingProject = projetRepo.findByNom(projet.getNom());
         if (existingProject != null) {
-            throw new ResourceAlreadyExistException("Le projet existe deja !");
+            throw new ResourceAlreadyExistException("Le projet existe déjà !");
         }
-        existingProject.setNom(projet.getNom());
-        existingProject.setDescription(projet.getDescription());
-        return projetRepo.save(existingProject);
+
+        Projet newProject = new Projet();
+        newProject.setNom(projet.getNom());
+        newProject.setDescription(projet.getDescription());
+
+        return projetRepo.save(newProject);
     }
+
 
     @Override
     public Projet updateProjet(ProjetRequest projet, Long id) {

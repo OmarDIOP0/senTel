@@ -2,16 +2,15 @@ package com.example.backend.model;
 
 import com.example.backend.model.enums.Status;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
