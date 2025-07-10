@@ -152,20 +152,9 @@ export default function DashboardPage() {
   const {logoutUser} = useContext(AuthContext);
   const { profileData, loading, error } = useAdminService();
 
-  if (loading) return <p>Chargement...</p>;
   if (error) return <p>Erreur : {error}</p>;
-// useEffect(() => {
-//   const token = localStorage.getItem("token");
-//   if (!token) {
-//     router.push("/login");
-//     return;
-//   }
 
-//   const decoded = jwtDecode(token);
-//   setUser(decoded);
-// }, [router]);
-
-  if (!user) {
+  if (!profileData) {
     return (
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />

@@ -20,7 +20,7 @@ import {
   BookMarkedIcon as MarkAsUnread,
   Settings,
 } from "lucide-react"
-import { getAllNotifications, markNotificationAsRead } from "@/services/notificationService"
+import { getAllNotifications, markNotificationAsRead } from "../../services/notificationService"
 
 const getNotificationIcon = (type) => {
   switch (type) {

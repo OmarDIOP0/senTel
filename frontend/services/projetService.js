@@ -1,4 +1,4 @@
-import { authorizedApi } from "./api";
+import { authorizedApi } from "../utils/api";
 
 export const getAllProjets = async () => {
   const response = await authorizedApi().get("/projet");

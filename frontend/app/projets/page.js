@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Plus, Search, MoreHorizontal, Edit, Trash2, FolderOpen, Settings } from "lucide-react"
-import { getAllProjets, deleteProjet } from "@/services/projetService"
+import { getAllProjets, deleteProjet } from "../../services/projetService"
 
 const getStatusBadge = (status) => {
   switch (status) {

@@ -1,4 +1,4 @@
-import { authorizedApi } from "./api";
+import { authorizedApi } from "../utils/api";
 
 export const getAllConfigurations = async () => {
   const response = await authorizedApi().get("/configuration");

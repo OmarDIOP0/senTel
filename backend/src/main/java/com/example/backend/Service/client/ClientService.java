@@ -6,6 +6,8 @@ import com.example.backend.request.ClientRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ClientService implements IClientService{
@@ -22,5 +24,10 @@ public class ClientService implements IClientService{
         client.setScenarioPredefini(request.getScenarioPredefini());
         client.setProfilUsage(request.getProfilUsage());
         return clientRepo.save(client);
+    }
+
+    @Override
+    public List<Client> getAllCLients() {
+        return clientRepo.findAll();
     }
 }

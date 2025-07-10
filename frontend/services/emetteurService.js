@@ -1,4 +1,4 @@
-import { authorizedApi } from "./api";
+import { authorizedApi } from "../utils/api";
 
 export const getAllEmetteurs = async () => {
   const response = await authorizedApi().get("/emetteur");
