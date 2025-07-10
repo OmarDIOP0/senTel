@@ -83,7 +83,6 @@ export default function UtilisateursPage() {
     } else if (Array.isArray(response.data.data)) {
       setUtilisateurs(response.data.data);
     } else {
-      console.error("Données inattendues : ", response);
       setUtilisateurs([]);
       setError("Format inattendu des utilisateurs");
     }

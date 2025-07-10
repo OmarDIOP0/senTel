@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useQuery } from "@tanstack/react-query"
 import {
   Bell,
   Search,
@@ -67,21 +66,34 @@ export default function NotificationsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("all")
   const [filterStatus, setFilterStatus] = useState("all")
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const router = useRouter()
 
-  // Fetch notifications from API
-  const { data: notificationsData, isLoading, refetch } = useQuery({
-    queryKey: ["notifications"],
-    queryFn: getAllNotifications,
-  })
+  // Fetch notifications on component mount
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const data = await getAllNotifications()
+        setNotifications(data.data || [])
+        console.log("Fetched notifications:", data.data)
+      } catch (err) {
+        setError("Failed to load notifications")
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const notifications = notificationsData?.data || []
+    fetchNotifications()
+  }, [])
 
   // Filter notifications
   const filteredNotifications = notifications.filter((notification) => {
     const matchesSearch =
-      notification.libelle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      notification.description.toLowerCase().includes(searchTerm.toLowerCase())
+      notification.libelle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      notification.description?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesType = filterType === "all" || notification.type === filterType
     const matchesStatus = filterStatus === "all" || notification.status === filterStatus
@@ -94,7 +106,10 @@ export default function NotificationsPage() {
   const handleMarkAsRead = async (id) => {
     try {
       await markNotificationAsRead(id)
-      refetch()
+      // Update local state
+      setNotifications(prev => prev.map(n => 
+        n.id === id ? {...n, status: "LU"} : n
+      ))
     } catch (error) {
       console.error("Error marking notification as read:", error)
     }
@@ -104,19 +119,36 @@ export default function NotificationsPage() {
     try {
       const unreadNotifications = notifications.filter((n) => n.status === "NON_LU")
       await Promise.all(unreadNotifications.map(n => markNotificationAsRead(n.id)))
-      refetch()
+      
+      // Update all unread notifications in local state
+      setNotifications(prev => prev.map(n => 
+        n.status === "NON_LU" ? {...n, status: "LU"} : n
+      ))
     } catch (error) {
       console.error("Error marking all notifications as read:", error)
     }
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
         <div className="flex-1 lg:ml-64 p-8">
           <div className="flex justify-center items-center h-full">
             <p>Chargement des notifications...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64 p-8">
+          <div className="flex justify-center items-center h-full">
+            <p>{error}</p>
           </div>
         </div>
       </div>

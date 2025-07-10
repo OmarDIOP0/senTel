@@ -10,11 +10,12 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { User, Shield, Key, LogOut, Save, AlertCircle, CheckCircle, Calendar, Activity } from "lucide-react"
+import { useAdminService } from  "../../services/useAdminService"
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null)
+  const { profileData, loading: profileLoading, error: profileError } = useAdminService();
   const [isEditing, setIsEditing] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [formLoading, setFormLoading] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
   const router = useRouter()
@@ -27,27 +28,39 @@ export default function ProfilePage() {
     confirmPassword: "",
   })
 
+  useEffect(() => {
+    if (profileData) {
+      setFormData({
+        name: profileData.nomComplet || "",
+        email: profileData.email || "",
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+    }
+  }, [profileData])
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleSaveProfile = async () => {
-    setLoading(true)
+    setFormLoading(true)
     setError("")
     setSuccess("")
 
-    // Simulation d'appel API
-    setTimeout(() => {
-      setSuccess("Profil mis à jour avec succès")
-      setLoading(false)
-      setIsEditing(false)
-
-      // Mettre à jour les données utilisateur
-      const updatedUser = { ...user, name: formData.name, email: formData.email }
-      localStorage.setItem("user", JSON.stringify(updatedUser))
-      setUser(updatedUser)
-    }, 1000)
+    try {
+      // Here you would call your actual API endpoint to update the profile
+      // For now, we'll simulate it
+      setTimeout(() => {
+        setSuccess("Profil mis à jour avec succès")
+        setFormLoading(false)
+        setIsEditing(false)
+      }, 1000)
+    } catch (err) {
+      setError("Erreur lors de la mise à jour du profil")
+      setFormLoading(false)
+    }
   }
 
   const handleChangePassword = async () => {
@@ -61,29 +74,35 @@ export default function ProfilePage() {
       return
     }
 
-    setLoading(true)
+    setFormLoading(true)
     setError("")
     setSuccess("")
 
-    // Simulation d'appel API
-    setTimeout(() => {
-      setSuccess("Mot de passe modifié avec succès")
-      setLoading(false)
-      setFormData((prev) => ({
-        ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }))
-    }, 1000)
+    try {
+      // Here you would call your actual API endpoint to change password
+      // For now, we'll simulate it
+      setTimeout(() => {
+        setSuccess("Mot de passe modifié avec succès")
+        setFormLoading(false)
+        setFormData((prev) => ({
+          ...prev,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        }))
+      }, 1000)
+    } catch (err) {
+      setError("Erreur lors du changement de mot de passe")
+      setFormLoading(false)
+    }
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("user")
+    // Clear any authentication tokens or user data
     router.push("/login")
   }
 
-  const getRoleBadge = (role: string) => {
+  const getRoleBadge = (role) => {
     switch (role) {
       case "ADMIN":
         return (
@@ -111,8 +130,43 @@ export default function ProfilePage() {
     }
   }
 
-  if (!user) {
-    return <div>Chargement...</div>
+  if (profileLoading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64 p-8">
+          <div className="flex justify-center items-center h-full">
+            <p>Chargement du profil...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (profileError) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64 p-8">
+          <div className="flex justify-center items-center h-full">
+            <p>Erreur lors du chargement du profil</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!profileData) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64 p-8">
+          <div className="flex justify-center items-center h-full">
+            <p>Aucune donnée de profil disponible</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -154,27 +208,29 @@ export default function ProfilePage() {
                       <User className="h-8 w-8 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">{user.name}</h3>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <h3 className="font-medium text-gray-900">{profileData.nomComplet}</h3>
+                      <p className="text-sm text-gray-500">{profileData.email}</p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Rôle</span>
-                      {getRoleBadge(user.role)}
+                      {getRoleBadge(profileData.role)}
                     </div>
 
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Statut</span>
-                      <Badge className="bg-green-100 text-green-800">Actif</Badge>
+                      <Badge className={profileData.actif ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                        {profileData.actif ? "Actif" : "Inactif"}
+                      </Badge>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Membre depuis</span>
                       <span className="text-sm text-gray-900 flex items-center">
                         <Calendar className="w-3 h-3 mr-1" />
-                        Jan 2024
+                        {new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
                       </span>
                     </div>
 
@@ -241,17 +297,19 @@ export default function ProfilePage() {
                         variant="outline"
                         onClick={() => {
                           setIsEditing(false)
-                          setFormData((prev) => ({
-                            ...prev,
-                            name: user.name,
-                            email: user.email,
-                          }))
+                          setFormData({
+                            name: profileData.nomComplet || "",
+                            email: profileData.email || "",
+                            currentPassword: "",
+                            newPassword: "",
+                            confirmPassword: "",
+                          })
                         }}
                       >
                         Annuler
                       </Button>
-                      <Button onClick={handleSaveProfile} disabled={loading}>
-                        {loading ? (
+                      <Button onClick={handleSaveProfile} disabled={formLoading}>
+                        {formLoading ? (
                           "Sauvegarde..."
                         ) : (
                           <>
@@ -306,8 +364,8 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  <Button onClick={handleChangePassword} disabled={loading}>
-                    {loading ? (
+                  <Button onClick={handleChangePassword} disabled={formLoading}>
+                    {formLoading ? (
                       "Modification..."
                     ) : (
                       <>
@@ -328,15 +386,15 @@ export default function ProfilePage() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">25</div>
+                      <div className="text-2xl font-bold text-blue-600">0</div>
                       <div className="text-sm text-gray-600">Configurations créées</div>
                     </div>
                     <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">18</div>
+                      <div className="text-2xl font-bold text-green-600">0</div>
                       <div className="text-sm text-gray-600">Rapports générés</div>
                     </div>
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">3</div>
+                      <div className="text-2xl font-bold text-purple-600">0</div>
                       <div className="text-sm text-gray-600">Projets actifs</div>
                     </div>
                   </div>

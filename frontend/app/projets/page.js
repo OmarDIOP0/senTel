@@ -1,17 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { useQuery } from "@tanstack/react-query"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { showAlert } from "@/utils/alert"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Plus, Search, MoreHorizontal, Edit, Trash2, FolderOpen, Settings } from "lucide-react"
-import { getAllProjets, deleteProjet } from "../../services/projetService"
+import { getAllProjets, deleteProjet, createProjet } from "../../services/projetService"
+import { toast } from "@/components/ui/use-toast"
 
 const getStatusBadge = (status) => {
   switch (status) {
@@ -30,34 +32,105 @@ const getStatusBadge = (status) => {
 
 export default function ProjetsPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [projets, setProjets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [newProject, setNewProject] = useState({
+    nom: "",
+    description: ""
+  })
   const router = useRouter()
 
-  // Fetch projects from API
-  const { data: projetsData, isLoading, refetch } = useQuery({
-    queryKey: ["projets"],
-    queryFn: getAllProjets,
-  })
+  // Fetch projects on component mount
+  useEffect(() => {
+    const fetchProjets = async () => {
+      try {
+        const response = await getAllProjets()
+        setProjets(response.data || [])
+      } catch (err) {
+        setError("Erreur lors du chargement des projets")
+        console.error(err)
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de charger les projets",
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const projets = projetsData?.data || []
+    fetchProjets()
+  }, [])
+
+  // Handle project creation
+  const handleCreateProject = async () => {
+    if (!newProject.nom || !newProject.description) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs",
+      })
+      return
+    }
+
+    try {
+      setLoading(true)
+      // Format the request according to the ProjetRequest class
+      const projectRequest = {
+        nom: newProject.nom,
+        description: newProject.description
+      }
+      
+      const response = await createProjet(projectRequest)
+      setProjets(prev => [...prev, response.data])
+      setIsCreateModalOpen(false)
+      setNewProject({ nom: "", description: "" })
+      
+      toast({
+        title: "Succès",
+        description: "Projet créé avec succès",
+      })
+    } catch (err) {
+      console.error(err)
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: err.response?.data?.message || "Erreur lors de la création du projet",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Handle project deletion
   const handleDelete = async (id) => {
     try {
       await deleteProjet(id)
-      refetch()
+      setProjets(prev => prev.filter(projet => projet.id !== id))
+      toast({
+        title: "Succès",
+        description: "Projet supprimé avec succès",
+      })
     } catch (error) {
       console.error("Error deleting project:", error)
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Erreur lors de la suppression du projet",
+      })
     }
   }
 
   // Filter projects based on search term
   const filteredProjets = projets.filter(
     (projet) =>
-      projet.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      projet.description.toLowerCase().includes(searchTerm.toLowerCase())
+      projet.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      projet.description?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
@@ -82,12 +155,10 @@ export default function ProjetsPage() {
               <h1 className="text-3xl font-bold text-gray-900">Projets</h1>
               <p className="text-gray-600 mt-2">Gérez vos projets de dimensionnement de réseaux 5G</p>
             </div>
-            <Link href="/projets/create">
-              <Button className="mt-4 sm:mt-0">
-                <Plus className="mr-2 h-4 w-4" />
-                Nouveau projet
-              </Button>
-            </Link>
+            <Button className="mt-4 sm:mt-0" onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nouveau projet
+            </Button>
           </div>
 
           {/* Stats */}
@@ -202,11 +273,13 @@ export default function ProjetsPage() {
                   <CardDescription className="text-sm text-gray-600 mb-4">{projet.description}</CardDescription>
                   <div className="flex items-center justify-between text-sm text-gray-500">
                     <span>Créé le {new Date(projet.createdAt).toLocaleDateString()}</span>
-                    <Link href={`/configurations?project=${projet.id}`}>
-                      <Button variant="outline" size="sm">
-                        Voir configurations
-                      </Button>
-                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => router.push(`/configurations?project=${projet.id}`)}
+                    >
+                      Voir configurations
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -220,16 +293,54 @@ export default function ProjetsPage() {
                   <FolderOpen className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-4 text-lg font-medium text-gray-900">Aucun projet trouvé</h3>
                   <p className="mt-2 text-gray-500">Aucun projet ne correspond à vos critères de recherche.</p>
-                  <Link href="/projets/create">
-                    <Button className="mt-4">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Créer un projet
-                    </Button>
-                  </Link>
+                  <Button className="mt-4" onClick={() => setIsCreateModalOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Créer un projet
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           )}
+
+          {/* Create Project Modal */}
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Créer un nouveau projet</DialogTitle>
+                <DialogDescription>
+                  Remplissez les informations pour créer un nouveau projet de dimensionnement
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="projectName">Nom du projet*</Label>
+                  <Input
+                    id="projectName"
+                    value={newProject.nom}
+                    onChange={(e) => setNewProject({...newProject, nom: e.target.value})}
+                    placeholder="Projet 5G Paris"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="projectDescription">Description*</Label>
+                  <Input
+                    id="projectDescription"
+                    value={newProject.description}
+                    onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+                    placeholder="Description du projet..."
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                    Annuler
+                  </Button>
+                  <Button onClick={handleCreateProject} disabled={loading}>
+                    {loading ? "Création..." : "Créer le projet"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
