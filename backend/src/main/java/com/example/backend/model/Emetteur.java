@@ -1,5 +1,6 @@
 package com.example.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +21,7 @@ public class Emetteur {
     private double frequence;
 
     @ManyToOne
+    @JsonIgnore
     private Configuration configuration;
 
 }

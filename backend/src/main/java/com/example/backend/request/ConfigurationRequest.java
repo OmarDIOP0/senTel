@@ -10,4 +10,6 @@ public class ConfigurationRequest {
     private double bandePassante;
     private Long clientId;
     private Long projetId;
+    private Long emetteurId;
+    private Long recepteurId;
 }

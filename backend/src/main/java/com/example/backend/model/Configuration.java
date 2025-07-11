@@ -1,5 +1,6 @@
 package com.example.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,19 +30,23 @@ public class Configuration {
     private Notification notification;
 
     @OneToOne(optional = true, cascade = CascadeType.ALL)
+    @JsonIgnore
     @JoinColumn(name = "emetteur_id")
     private Emetteur emetteur;
 
     @OneToOne(optional = true, cascade = CascadeType.ALL)
+    @JsonIgnore
     @JoinColumn(name = "recepteur_id")
     private Recepteur recepteur;
 
     @ManyToOne
-    @JoinColumn(name = "client_id",nullable = false)
+    @JoinColumn(name = "client_id", nullable = false)
+    @JsonIgnore
     private Client client;
 
     @ManyToOne
     @JoinColumn(name = "projet_id", nullable = false)
+    @JsonIgnore
     private Projet projet;
 
 }

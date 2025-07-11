@@ -146,19 +146,18 @@ const CreateConfigurationPage = () => {
     setLoading(true);
     try {
       // Ajouter émetteur
-      await fetch(`/api/configurations/${configId}/emetteur`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(emetteurData)
+      const emetteurResponse = await createEmetteur({
+        ...emetteurData,
+        configurationId: configId
       });
+      const emetteur = await emetteurResponse.json();
 
       // Ajouter récepteur
-      await fetch(`/api/configurations/${configId}/recepteur`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(recepteurData)
+      const recepteurResponse = await createRecepteur({
+        ...recepteurData,
+        configurationId: configId
       });
-
+      const recepteur = await recepteurResponse.json();
       setEtape(3);
     } catch (err) {
       setError("Erreur lors de l'ajout des équipements");
@@ -173,12 +172,12 @@ const CreateConfigurationPage = () => {
     setLoading(true);
     try {
       // D'abord ajouter les atténuations
-      await fetch(`/api/configurations/${configId}/attenuations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(attenuations)
-      });
-
+      for (const att of attenuations) {
+        await createAttenuation({
+          ...att,
+          configurationId: configId
+        });
+      }
       // Puis lancer la simulation
       const response = await fetch(`/api/configurations/${configId}/simuler`, {
         method: 'POST'

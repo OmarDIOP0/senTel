@@ -30,6 +30,17 @@ public class ConfigurationService implements IConfigurationService{
         configuration.setBandePassante(request.getBandePassante());
         configuration.setClient(client);
         configuration.setProjet(projet);
+        if (request.getEmetteurId() != null) {
+            Emetteur emetteur = emetteurRepo.findById(request.getEmetteurId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Émetteur introuvable"));
+            configuration.setEmetteur(emetteur);
+        }
+
+        if (request.getRecepteurId() != null) {
+            Recepteur recepteur = recepteurRepo.findById(request.getRecepteurId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Récepteur introuvable"));
+            configuration.setRecepteur(recepteur);
+        }
         return configurationRepo.save(configuration);
     }
 

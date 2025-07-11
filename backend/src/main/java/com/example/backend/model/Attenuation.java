@@ -1,6 +1,7 @@
 package com.example.backend.model;
 
 import com.example.backend.model.enums.TypeAttenuation;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,5 +21,6 @@ public class Attenuation {
 
     @ManyToOne
     @JoinColumn(name = "configuration_id", nullable = false)
+    @JsonIgnore
     private Configuration configuration;
 }
