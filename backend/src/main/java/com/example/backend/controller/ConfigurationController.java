@@ -3,7 +3,10 @@ package com.example.backend.controller;
 import com.example.backend.Service.configuration.ConfigurationService;
 import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.model.Configuration;
+import com.example.backend.model.Rapport;
+import com.example.backend.request.AttenuationConfigRequest;
 import com.example.backend.request.ConfigurationRequest;
+import com.example.backend.request.RecepteurConfigRequest;
 import com.example.backend.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -142,5 +145,31 @@ public class ConfigurationController {
                     null
             ));
         }
+
+    }
+    @PostMapping("/{configId}/emetteur")
+    public ResponseEntity<Configuration> addEmetteur(
+            @PathVariable Long configId,
+            @RequestBody EmetteurRequest request) {
+        return ResponseEntity.ok(configurationService.addEmetteur(configId, request));
+    }
+
+    @PostMapping("/{configId}/recepteur")
+    public ResponseEntity<Configuration> addRecepteur(
+            @PathVariable Long configId,
+            @RequestBody RecepteurConfigRequest request) {
+        return ResponseEntity.ok(configurationService.addRecepteur(configId, request));
+    }
+
+    @PostMapping("/{configId}/attenuations")
+    public ResponseEntity<Configuration> addAttenuations(
+            @PathVariable Long configId,
+            @RequestBody List<AttenuationConfigRequest> attenuations) {
+        return ResponseEntity.ok(configurationService.addAttenuations(configId, attenuations));
+    }
+
+    @PostMapping("/{configId}/simuler")
+    public ResponseEntity<Rapport> simulerConfiguration(@PathVariable Long configId) {
+        return ResponseEntity.ok(configurationService.simulerConfiguration(configId));
     }
 }

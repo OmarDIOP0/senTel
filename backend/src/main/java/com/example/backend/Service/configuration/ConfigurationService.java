@@ -1,9 +1,13 @@
 package com.example.backend.Service.configuration;
 
+import com.example.backend.Service.dimensionnement.DimensionnementService;
 import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.model.*;
 import com.example.backend.repository.*;
+import com.example.backend.request.AttenuationConfigRequest;
 import com.example.backend.request.ConfigurationRequest;
+import com.example.backend.request.EmetteurConfigRequest;
+import com.example.backend.request.RecepteurConfigRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +22,8 @@ public class ConfigurationService implements IConfigurationService{
     private final RecepteurRepo recepteurRepo;
     private final ClientRepo clientRepo;
     private final ProjetRepo projetRepo;
+    private final AttenuationRepo attenuationRepo;
+    private final DimensionnementService dimensionnementService;
 
     @Override
     public Configuration creerConfiguration(ConfigurationRequest request) {
@@ -76,6 +82,50 @@ public class ConfigurationService implements IConfigurationService{
     @Override
     public List<Configuration> getConfigurationByProjet(Long projetId) {
         return configurationRepo.findByProjetId(projetId);
+    }
+    public Configuration addEmetteur(Long configId, EmetteurConfigRequest request) {
+        Configuration config = configurationRepo.findById(configId)
+                .orElseThrow(() -> new ResourceNotFoundException("Configuration non trouvée"));
+
+        Emetteur emetteur = new Emetteur();
+        emetteur.setPuissanceEntree(request.getPuissanceEntree());
+        emetteur.setFrequence(request.getFrequence());
+        emetteur.setConfiguration(config);
+        config.setEmetteur(emetteurRepo.save(emetteur));
+        return configurationRepo.save(config);
+    }
+    public Configuration addRecepteur(Long configId, RecepteurConfigRequest request) {
+        Configuration config = configurationRepo.findById(configId)
+                .orElseThrow(() -> new ResourceNotFoundException("Configuration non trouvée"));
+
+        Recepteur recepteur = new Recepteur();
+        recepteur.setSensibilite(request.getSensibilite());
+        recepteur.setGainReception(request.getGainReception());
+        recepteur.setConfiguration(config);
+        config.setRecepteur(recepteurRepo.save(recepteur));
+        return configurationRepo.save(config);
+    }
+    public Configuration addAttenuations(Long configId, List<AttenuationConfigRequest> attenuations) {
+        Configuration config = configurationRepo.findById(configId)
+                .orElseThrow(() -> new ResourceNotFoundException("Configuration non trouvée"));
+
+        List<Attenuation> attenuationList = attenuations.stream()
+                .map(req -> {
+                    Attenuation att = new Attenuation();
+                    att.setNomAttenuation(req.getNomAttenuation());
+                    att.setValeur(req.getValeur());
+                    att.setLongueurCable(req.getLongueurCable());
+                    att.setConfiguration(config);
+                    return attenuationRepo.save(att);
+                }).toList();
+
+        config.setAttenuations(attenuationList);
+        return configurationRepo.save(config);
+    }
+    public Rapport simulerConfiguration(Long configId) {
+        Configuration config = configurationRepo.findById(configId)
+                .orElseThrow(() -> new ResourceNotFoundException("Configuration non trouvée"));
+        return dimensionnementService.genererRapportComplet(config);
     }
 
 }
