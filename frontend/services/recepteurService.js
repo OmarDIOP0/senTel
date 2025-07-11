@@ -16,7 +16,7 @@ export const createRecepteur = async (data) => {
 };
 
 export const updateRecepteur = async (data) => {
-  const response = await authorizedApi().put("/recepteur/", data);
+  const response = await authorizedApi().put("/recepteur", data);
   return response.data;
 };
 

@@ -26,7 +26,7 @@ const configurations = [
   }
 ]
 
-const getStatusBadge = (status: string) => {
+const getStatusBadge = (status) => {
   switch (status) {
     case "ACTIVE":
       return <Badge className="bg-green-100 text-green-800">Actif</Badge>
@@ -40,7 +40,7 @@ const getStatusBadge = (status: string) => {
 }
 
 export default function ConfigurationsPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const router = useRouter()
 
@@ -52,7 +52,7 @@ export default function ConfigurationsPage() {
       acc[config.project].push(config)
       return acc
     },
-    {} as Record<string, typeof configurations>,
+    {},
   )
 
   // Filter configurations based on search term
@@ -70,7 +70,7 @@ export default function ConfigurationsPage() {
       }
       return acc
     },
-    {} as Record<string, typeof configurations>,
+    {},
   )
 
   return (
