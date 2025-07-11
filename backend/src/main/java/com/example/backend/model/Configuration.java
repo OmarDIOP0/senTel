@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -24,7 +25,7 @@ public class Configuration {
     private Rapport rapport;
 
     @OneToMany(mappedBy = "configuration", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Attenuation> attenuations;
+    private List<Attenuation> attenuations = new ArrayList<>();
 
     @OneToOne(mappedBy = "configuration", cascade = CascadeType.ALL, orphanRemoval = true)
     private Notification notification;

@@ -9,6 +9,7 @@ import com.example.backend.request.ConfigurationRequest;
 import com.example.backend.request.EmetteurConfigRequest;
 import com.example.backend.request.RecepteurConfigRequest;
 import com.example.backend.response.ApiResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

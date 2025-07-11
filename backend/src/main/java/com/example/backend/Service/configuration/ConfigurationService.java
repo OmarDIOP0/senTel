@@ -8,11 +8,13 @@ import com.example.backend.request.AttenuationConfigRequest;
 import com.example.backend.request.ConfigurationRequest;
 import com.example.backend.request.EmetteurConfigRequest;
 import com.example.backend.request.RecepteurConfigRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -115,23 +117,23 @@ public class ConfigurationService implements IConfigurationService{
         config.setRecepteur(recepteurRepo.save(recepteur));
         return configurationRepo.save(config);
     }
+    @Transactional
     public Configuration addAttenuations(Long configId, List<AttenuationConfigRequest> attenuations) {
         Configuration config = configurationRepo.findById(configId)
                 .orElseThrow(() -> new ResourceNotFoundException("Configuration non trouvée"));
+        config.getAttenuations().clear();
 
-        List<Attenuation> attenuationList = attenuations.stream()
-                .map(req -> {
-                    Attenuation att = new Attenuation();
-                    att.setNomAttenuation(req.getNomAttenuation());
-                    att.setValeur(req.getValeur());
-                    att.setLongueurCable(req.getLongueurCable());
-                    att.setConfiguration(config);
-                    return attenuationRepo.save(att);
-                }).toList();
-
-        config.setAttenuations(attenuationList);
+        for(AttenuationConfigRequest req: attenuations){
+            Attenuation att = new Attenuation();
+            att.setNomAttenuation(req.getNomAttenuation());
+            att.setValeur(req.getValeur());
+            att.setLongueurCable(req.getLongueurCable());
+            att.setConfiguration(config);
+            config.getAttenuations().add(att);
+        }
         return configurationRepo.save(config);
     }
+
     public Rapport simulerConfiguration(Long configId) {
         Configuration config = configurationRepo.findById(configId)
                 .orElseThrow(() -> new ResourceNotFoundException("Configuration non trouvée"));
