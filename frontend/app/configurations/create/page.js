@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -107,13 +107,16 @@ export default function CreateConfigurationPage() {
       setError("Veuillez remplir tous les champs obligatoires")
       return
     }
-
+    console.log("Client ID:", profileData?.id)
     setLoading(true)
     try {
       const response = await createConfiguration({
-        ...formData,
-        clientId: profileData?.id
+          projetId: parseInt(formData.projetId),
+          distance: parseFloat(formData.distance),
+          bandePassante: parseFloat(formData.bandePassante),
+        ...(profileData.role === "CLIENT" ? { clientId: profileData.id } : {adminId: profileData.id}),
       })
+      console.log("Configuration created:", response.data)
       setConfigId(response.data.id)
       setEtape(2)
     } catch (err) {

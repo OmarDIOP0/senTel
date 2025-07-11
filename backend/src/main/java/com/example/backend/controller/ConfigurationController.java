@@ -163,10 +163,23 @@ public class ConfigurationController {
     }
 
     @PostMapping("/{configId}/attenuations")
-    public ResponseEntity<Configuration> addAttenuations(
+    public ResponseEntity<ApiResponse> addAttenuations(
             @PathVariable Long configId,
             @RequestBody List<AttenuationConfigRequest> attenuations) {
-        return ResponseEntity.ok(configurationService.addAttenuations(configId, attenuations));
+        try {
+            Configuration config = configurationService.addAttenuations(configId, attenuations);
+            return ResponseEntity.ok(new ApiResponse(
+                    true,
+                    "Atténuations ajoutées avec succès",
+                    config
+            ));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
+                    false,
+                    e.getMessage(),
+                    null
+            ));
+        }
     }
 
     @PostMapping("/{configId}/simuler")

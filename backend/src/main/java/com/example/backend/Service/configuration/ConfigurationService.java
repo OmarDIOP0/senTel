@@ -24,17 +24,15 @@ public class ConfigurationService implements IConfigurationService{
     private final ProjetRepo projetRepo;
     private final AttenuationRepo attenuationRepo;
     private final DimensionnementService dimensionnementService;
+    private final AdminRepo adminRepo;
 
     @Override
     public Configuration creerConfiguration(ConfigurationRequest request) {
-        Client client = clientRepo.findById(request.getClientId())
-                .orElseThrow(() -> new ResourceNotFoundException("Client introuvable"));
         Projet projet = projetRepo.findById(request.getProjetId())
                 .orElseThrow(() -> new ResourceNotFoundException("Projet introuvable"));
         Configuration configuration = new Configuration();
         configuration.setDistance(request.getDistance());
         configuration.setBandePassante(request.getBandePassante());
-        configuration.setClient(client);
         configuration.setProjet(projet);
         if (request.getEmetteurId() != null) {
             Emetteur emetteur = emetteurRepo.findById(request.getEmetteurId())
@@ -47,6 +45,18 @@ public class ConfigurationService implements IConfigurationService{
                     .orElseThrow(() -> new ResourceNotFoundException("Récepteur introuvable"));
             configuration.setRecepteur(recepteur);
         }
+        if (request.getClientId() != null) {
+            Client client = clientRepo.findById(request.getClientId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Client introuvable"));
+            configuration.setClient(client);
+        } else if (request.getAdminId() != null) {
+            Administrateur admin = adminRepo.findById(request.getAdminId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Administrateur introuvable"));
+            configuration.setAdministrateur(admin);
+        } else {
+            throw new IllegalArgumentException("Un client ou un administrateur doit être spécifié");
+        }
+
         return configurationRepo.save(configuration);
     }
 

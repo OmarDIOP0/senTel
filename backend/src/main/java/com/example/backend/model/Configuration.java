@@ -40,7 +40,7 @@ public class Configuration {
     private Recepteur recepteur;
 
     @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false)
+    @JoinColumn(name = "client_id", nullable = true)
     @JsonIgnore
     private Client client;
 
@@ -48,5 +48,10 @@ public class Configuration {
     @JoinColumn(name = "projet_id", nullable = false)
     @JsonIgnore
     private Projet projet;
+
+    @ManyToOne
+    @JoinColumn(name = "admin_id", nullable = true)
+    @JsonIgnore
+    private Administrateur administrateur;
 
 }
