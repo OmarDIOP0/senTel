@@ -1,122 +1,84 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Sidebar } from "@/components/layout/sidebar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Save, AlertCircle, CheckCircle, Zap, Plus, Trash2, Radio } from "lucide-react"
-import { getAllProjets } from "@/services/projetService"
-import {getConfigurationByProjet} from "@/services/configurationService"
-import { createConfiguration } from "@/services/configurationService"
-import { toast } from "@/components/ui/use-toast"
-import { useAdminService } from "@/services/useAdminService"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Save, CheckCircle, Plus, Trash2 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
+import { useAdminService } from "@/services/useAdminService";
+import { getAllProjets } from "@/services/projetService";
+import { createConfiguration,getConfigurationById } from "@/services/configurationService";
+import {createAttenuation} from "@/services/attenuationService";
+import {createRecepteur } from "@/services/recepteurService";
 import { createEmetteur } from "@/services/emetteurService";
-import { createRecepteur } from "@/services/recepteurService";
-
-
-// Types d'atténuation correspondant à l'enum TypeAttenuation
+// Types d'atténuation
 const attenuationTypes = [
   "PERTE_EPISSURE_FUSION",
   "PERTE_EPISSURE_MECANIQUE",
   "CABLE_RACCORDEMENT",
   "PERTE_CONNECTEUR"
-]
+];
 
-export default function CreateConfigurationPage() {
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState("")
-  const [projects, setProjects] = useState([])
-  const [emetteurData, setEmetteurData] = useState({
-    configurationId: null,
-    puissanceEntree: '',
-    frequence: ''
-  });
+const CreateConfigurationPage = () => {
+  const [etape, setEtape] = useState(1);
+  const [configId, setConfigId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const router = useRouter();
+  const { profileData } = useAdminService();
 
-  const [recepteurData, setRecepteurData] = useState({
-    configurationId: null,
-    sensibilite: '',
-    gainReception: ''
-  });
-  const router = useRouter()
-
+  // Données du formulaire
   const [formData, setFormData] = useState({
     projetId: "",
     distance: "",
     bandePassante: "",
-    // emetteurId: "",
-    // recepteurId: "",
-    clientId: ""
-  })
+  });
 
-  const [attenuations, setAttenuations] = useState([])
+  const [emetteurData, setEmetteurData] = useState({
+    puissanceEntree: "",
+    frequence: ""
+  });
+
+  const [recepteurData, setRecepteurData] = useState({
+    sensibilite: "",
+    gainReception: ""
+  });
+
+  const [attenuations, setAttenuations] = useState([]);
   const [newAttenuation, setNewAttenuation] = useState({ 
     nomAttenuation: "", 
     valeur: "", 
     longueurCable: "1" 
-  })
+  });
 
-  // Charger les projets et les équipements au montage
+  // Charger les projets au montage
   useEffect(() => {
-    const loadData = async () => {
+    const loadProjects = async () => {
       try {
-        setLoading(true)
-        const projetsResponse = await getAllProjets()
-        setProjects(projetsResponse.data || [])
-        
+        setLoading(true);
+        const response = await getAllProjets();
+        setProjects(response.data || []);
       } catch (err) {
-        setError("Erreur lors du chargement des données")
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Impossible de charger les données initiales",
-        })
+        setError("Erreur lors du chargement des projets");
+        toast({ variant: "destructive", title: "Erreur", description: error });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
+    loadProjects();
+  }, []);
 
-    loadData()
-  }, [])
-
-  // Charger les émetteurs/récepteurs quand un projet est sélectionné
-  useEffect(() => {
-    if (formData.projetId) {
-      const loadProjectData = async () => {
-        try {
-          const configs = await getConfigurationByProjet(formData.projetId)
-          const uniqueEmetteurs = [...new Set(configs.data.map(c => c.emetteur))]
-          const uniqueRecepteurs = [...new Set(configs.data.map(c => c.recepteur))]
-          
-          setEmetteurs(uniqueEmetteurs)
-          setRecepteurs(uniqueRecepteurs)
-          if (uniqueEmetteurs.length === 1) {
-            handleInputChange("emetteurId", uniqueEmetteurs[0].id)
-          }
-          if (uniqueRecepteurs.length === 1) {
-            handleInputChange("recepteurId", uniqueRecepteurs[0].id)
-          }
-        } catch (err) {
-          console.error("Erreur chargement configs projet:", err)
-        }
-      }
-      
-      loadProjectData()
-    }
-  }, [formData.projetId])
-
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
-
+  // Fonctions pour gérer les atténuations
   const addAttenuation = () => {
     if (newAttenuation.nomAttenuation && newAttenuation.valeur) {
       const newAtt = {
@@ -124,476 +86,457 @@ export default function CreateConfigurationPage() {
         nomAttenuation: newAttenuation.nomAttenuation,
         valeur: parseFloat(newAttenuation.valeur),
         longueurCable: parseFloat(newAttenuation.longueurCable) || 1
-      }
-      setAttenuations((prev) => [...prev, newAtt])
-      setNewAttenuation({ nomAttenuation: "", valeur: "", longueurCable: "1" })
+      };
+      setAttenuations([...attenuations, newAtt]);
+      setNewAttenuation({ nomAttenuation: "", valeur: "", longueurCable: "1" });
     }
-  }
+  };
 
   const removeAttenuation = (id) => {
-    setAttenuations((prev) => prev.filter((att) => att.id !== id))
-  }
+    setAttenuations(attenuations.filter(att => att.id !== id));
+  };
 
   const updateAttenuation = (id, field, value) => {
-    setAttenuations((prev) => 
-      prev.map((att) => 
-        att.id === id ? { ...att, [field]: value } : att
-      )
-    )
-  }
+    setAttenuations(attenuations.map(att => 
+      att.id === id ? { ...att, [field]: value } : att
+    ));
+  };
 
   const calculateTotalAttenuation = () => {
     return attenuations.reduce(
       (total, att) => total + (parseFloat(att.valeur) * parseFloat(att.longueurCable || 1)), 
       0
-    ).toFixed(2)
-  }
-    const { profileData } = useAdminService();
+    ).toFixed(2);
+  };
 
-  const handleSubmit = async (e) => {
-  e.preventDefault()
-  setLoading(true)
-  setError("")
-  formData.clientId = profileData?.id
-
-  if (!formData.projetId || !formData.distance || !formData.bandePassante) {
-    setError("Veuillez remplir tous les champs obligatoires")
-    setLoading(false)
-    return
-  }
-
-  try {
-    // 1. Créer l'émetteur
-    const newEmetteur = await createEmetteur({
-      puissanceEntree: parseFloat(emetteurData.puissanceEntree),
-      frequence: parseFloat(emetteurData.frequence),
-      projetId: parseInt(formData.projetId)
-    })
-
-    // 2. Créer le récepteur
-    const newRecepteur = await createRecepteur({
-      sensibilite: parseFloat(recepteurData.sensibilite),
-      gainReception: parseFloat(recepteurData.gainReception),
-      projetId: parseInt(formData.projetId)
-    })
-
-    // 3. Créer la configuration
-    const configRequest = {
-      distance: parseFloat(formData.distance),
-      bandePassante: parseFloat(formData.bandePassante),
-      emetteurId: newEmetteur.id,
-      recepteurId: newRecepteur.id,
-      projetId: parseInt(formData.projetId),
-      clientId: profileData?.id,
-      attenuations: attenuations.map(att => ({
-        nomAttenuation: att.nomAttenuation,
-        valeur: parseFloat(att.valeur),
-        longueurCable: parseFloat(att.longueurCable)
-      }))
+  // Étape 1: Créer la configuration de base
+  const handleCreateConfig = async () => {
+    if (!formData.projetId || !formData.distance || !formData.bandePassante) {
+      setError("Veuillez remplir tous les champs obligatoires");
+      return;
     }
 
-    const response = await createConfiguration(configRequest)
+    setLoading(true);
+    try {
 
-    toast({
-      title: "Succès",
-      description: "Configuration créée avec succès",
-    })
+      const response = await createConfiguration({
+        ...formData,
+        clientId: profileData?.id
+      });
+      
+      const data = await response.json();
+      setConfigId(data.id);
+      setEtape(2);
+    } catch (err) {
+      setError("Erreur lors de la création");
+      toast({ variant: "destructive", title: "Erreur", description: error });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setSuccess(true)
-    setTimeout(() => {
-      router.push("/configurations")
-    }, 2000)
+  // Étape 2: Ajouter émetteur et récepteur
+  const handleAddEquipment = async () => {
+    if (!emetteurData.puissanceEntree || !emetteurData.frequence || 
+        !recepteurData.sensibilite || !recepteurData.gainReception) {
+      setError("Veuillez remplir tous les champs des équipements");
+      return;
+    }
 
-  } catch (err) {
-    console.error("Erreur création configuration:", err)
-    setError(err.response?.data?.message || "Erreur lors de la création")
-    toast({
-      variant: "destructive",
-      title: "Erreur",
-      description: err.response?.data?.message || "Erreur lors de la création",
-    })
-  } finally {
-    setLoading(false)
-  }
-}
+    setLoading(true);
+    try {
+      // Ajouter émetteur
+      await fetch(`/api/configurations/${configId}/emetteur`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emetteurData)
+      });
 
+      // Ajouter récepteur
+      await fetch(`/api/configurations/${configId}/recepteur`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(recepteurData)
+      });
 
-  if (success) {
-    return (
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar />
-        <div className="flex-1 lg:ml-64">
-          <div className="p-6 lg:p-8">
-            <Card className="max-w-md mx-auto mt-20">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Configuration créée !</h2>
-                  <p className="text-gray-600 mb-4">
-                    Votre configuration avec {attenuations.length} atténuation(s) a été sauvegardée avec succès.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    )
-  }
+      setEtape(3);
+    } catch (err) {
+      setError("Erreur lors de l'ajout des équipements");
+      toast({ variant: "destructive", title: "Erreur", description: error });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Étape 3: Simuler
+  const handleSimuler = async () => {
+    setLoading(true);
+    try {
+      // D'abord ajouter les atténuations
+      await fetch(`/api/configurations/${configId}/attenuations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(attenuations)
+      });
+
+      // Puis lancer la simulation
+      const response = await fetch(`/api/configurations/${configId}/simuler`, {
+        method: 'POST'
+      });
+      const rapport = await response.json();
+      
+      setSuccess(true);
+      toast({ title: "Succès", description: "Simulation terminée" });
+      
+      setTimeout(() => router.push("/configurations"), 2000);
+    } catch (err) {
+      setError("Erreur lors de la simulation");
+      toast({ variant: "destructive", title: "Erreur", description: error });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-
-      <div className="flex-1 lg:ml-64">
-        <div className="p-6 lg:p-8">
-          {/* Header */}
-          <div className="flex items-center mb-8">
-            <Link href="/configurations">
-              <Button variant="ghost" size="sm" className="mr-4">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Nouvelle configuration</h1>
-              <p className="text-gray-600 mt-2">Configuration avancée avec gestion des atténuations</p>
-            </div>
-          </div>
-
-          <div className="max-w-4xl">
-            {error && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Étape 1: Projet */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <span className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-bold mr-3">
-                      1
-                    </span>
-                    Sélectionner le projet
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Select 
-                    value={formData.projetId} 
-                    onValueChange={(value) => handleInputChange("projetId", value)}
-                    disabled={loading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choisir un projet" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projects.map((project) => (
-                        <SelectItem key={project.id} value={project.id.toString()}>
-                          {project.nom}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
-
-              {/* Étape 2: Paramètres de base */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <span className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-bold mr-3">
-                      2
-                    </span>
-                    Paramètres de base
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="distance">Distance (km) *</Label>
-                    <Input
-                      id="distance"
-                      type="number"
-                      step="0.1"
-                      placeholder="2.5"
-                      value={formData.distance}
-                      onChange={(e) => handleInputChange("distance", e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="bandePassante">Bande passante (MHz) *</Label>
-                    <Input
-                      id="bandePassante"
-                      type="number"
-                      placeholder="100"
-                      value={formData.bandePassante}
-                      onChange={(e) => handleInputChange("bandePassante", e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Étape 3: Configuration radio */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <span className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-bold mr-3">
-                      3
-                    </span>
-                    Configuration radio
-                  </CardTitle>
-                  <CardDescription>Sélectionnez l'émetteur et le récepteur</CardDescription>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Émetteur - Ajouter ces champs */}
-                  <div>
-                    <Label htmlFor="puissanceEntree">Puissance d'entrée (dBm)</Label>
-                    <Input
-                      id="puissanceEntree"
-                      type="number"
-                      step="0.1"
-                      placeholder="10"
-                      value={emetteurData.puissanceEntree}
-                      onChange={(e) => setEmetteurData({...emetteurData, puissanceEntree: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="frequence">Fréquence (GHz)</Label>
-                    <Input
-                      id="frequence"
-                      type="number"
-                      step="0.1"
-                      placeholder="2.4"
-                      value={emetteurData.frequence}
-                      onChange={(e) => setEmetteurData({...emetteurData, frequence: e.target.value})}
-                    />
-                  </div>
-
-                  {/* Récepteur - Ajouter ces champs */}
-                  <div>
-                    <Label htmlFor="sensibilite">Sensibilité (dBm)</Label>
-                    <Input
-                      id="sensibilite"
-                      type="number"
-                      step="0.1"
-                      placeholder="-85"
-                      value={recepteurData.sensibilite}
-                      onChange={(e) => setRecepteurData({...recepteurData, sensibilite: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="gainReception">Gain de réception (dB)</Label>
-                    <Input
-                      id="gainReception"
-                      type="number"
-                      step="0.1"
-                      placeholder="15"
-                      value={recepteurData.gainReception}
-                      onChange={(e) => setRecepteurData({...recepteurData, gainReception: e.target.value})}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Étape 4: Atténuations */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <span className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-bold mr-3">
-                      4
-                    </span>
-                    Atténuations
-                  </CardTitle>
-                  <CardDescription>
-                    Ajoutez les différentes sources d'atténuation du signal
-                    {attenuations.length > 0 && (
-                      <span className="ml-2">
-                        • Total: <strong>{calculateTotalAttenuation()} dB</strong>
-                      </span>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Atténuations existantes */}
-                  {attenuations.length > 0 && (
-                    <div className="space-y-3">
-                      {attenuations.map((attenuation) => (
-                        <div
-                          key={attenuation.id}
-                          className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border"
-                        >
-                          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div>
-                              <Label className="text-xs text-gray-600">Type d'atténuation</Label>
-                              <Select
-                                value={attenuation.nomAttenuation}
-                                onValueChange={(value) => updateAttenuation(attenuation.id, "nomAttenuation", value)}
-                                disabled={loading}
-                              >
-                                <SelectTrigger className="h-9">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {attenuationTypes.map((type) => (
-                                    <SelectItem key={type} value={type}>
-                                      {type.replace(/_/g, ' ').toLowerCase()}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label className="text-xs text-gray-600">Valeur (dB/m)</Label>
-                              <Input
-                                type="number"
-                                step="0.1"
-                                placeholder="0.0"
-                                value={attenuation.valeur}
-                                onChange={(e) => updateAttenuation(attenuation.id, "valeur", e.target.value)}
-                                className="h-9"
-                                disabled={loading}
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs text-gray-600">Longueur (m)</Label>
-                              <Input
-                                type="number"
-                                step="0.1"
-                                placeholder="1.0"
-                                value={attenuation.longueurCable}
-                                onChange={(e) => updateAttenuation(attenuation.id, "longueurCable", e.target.value)}
-                                className="h-9"
-                                disabled={loading}
-                              />
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeAttenuation(attenuation.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            disabled={loading}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                      <Separator />
-                    </div>
-                  )}
-
-                  {/* Ajouter nouvelle atténuation */}
-                  <div className="space-y-3">
-                    <h5 className="font-medium text-gray-900 flex items-center">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Ajouter une atténuation
-                    </h5>
-                    <div className="flex items-end space-x-3">
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div>
-                          <Label>Type d'atténuation</Label>
-                          <Select
-                            value={newAttenuation.nomAttenuation}
-                            onValueChange={(value) => setNewAttenuation((prev) => ({ ...prev, nomAttenuation: value }))}
-                            disabled={loading}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choisir le type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {attenuationTypes.map((type) => (
-                                <SelectItem key={type} value={type}>
-                                  {type.replace(/_/g, ' ').toLowerCase()}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Valeur (dB/m)</Label>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            placeholder="0.0"
-                            value={newAttenuation.valeur}
-                            onChange={(e) => setNewAttenuation((prev) => ({ ...prev, valeur: e.target.value }))}
-                            disabled={loading}
-                          />
-                        </div>
-                        <div>
-                          <Label>Longueur (m)</Label>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            placeholder="1.0"
-                            value={newAttenuation.longueurCable}
-                            onChange={(e) => setNewAttenuation((prev) => ({ ...prev, longueurCable: e.target.value }))}
-                            disabled={loading}
-                          />
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={addAttenuation}
-                        disabled={loading || !newAttenuation.nomAttenuation || !newAttenuation.valeur}
-                        className="shrink-0"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Ajouter
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Résumé des atténuations */}
-                  {attenuations.length > 0 && (
-                    <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-blue-900">
-                          Total des atténuations: {calculateTotalAttenuation()} dB
-                        </span>
-                        <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
-                          {attenuations.length} source(s)
-                        </Badge>
-                      </div>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {attenuations.map((att) => (
-                          <Badge key={att.id} variant="secondary" className="text-xs">
-                            {att.nomAttenuation.replace(/_/g, ' ').toLowerCase()}: {att.valeur}dB/m × {att.longueurCable}m
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Boutons d'action */}
-              <div className="flex justify-end space-x-4">
-                <Link href="/configurations">
-                  <Button variant="outline" disabled={loading}>
-                    Annuler
-                  </Button>
-                </Link>
-                <Button type="submit" disabled={loading}>
-                  {loading ? (
-                    "Sauvegarde..."
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Créer la configuration
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
+      
+      <div className="flex-1 lg:ml-64 p-6 lg:p-8">
+        {/* En-tête */}
+        <div className="flex items-center mb-8">
+          <Button variant="ghost" onClick={() => router.back()}>
+            <ArrowLeft className="mr-2" /> Retour
+          </Button>
+          <div className="ml-4">
+            <h1 className="text-3xl font-bold">Nouvelle configuration</h1>
+            <p className="text-gray-600">Processus en {etape === 1 ? '3' : etape === 2 ? '2' : '1'} étapes</p>
           </div>
         </div>
+
+        {/* Indicateur d'étapes */}
+        <div className="flex mb-8">
+          {[1, 2, 3].map((step) => (
+            <div key={step} className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center 
+                ${etape >= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                {step}
+              </div>
+              {step < 3 && <div className="w-16 h-1 bg-gray-200 mx-2"></div>}
+            </div>
+          ))}
+        </div>
+
+        {/* Messages d'erreur/succès */}
+        {error && <Alert variant="destructive">{error}</Alert>}
+        {success && <Alert variant="success">Configuration créée avec succès!</Alert>}
+
+        {/* Étape 1: Configuration de base */}
+        {etape === 1 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Paramètres de base</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Projet *</Label>
+                <Select 
+                  value={formData.projetId} 
+                  onValueChange={(value) => setFormData({...formData, projetId: value})}
+                  disabled={loading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisir un projet" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        {project.nom}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Distance (km) *</Label>
+                  <Input 
+                    type="number" 
+                    step="0.1"
+                    value={formData.distance}
+                    onChange={(e) => setFormData({...formData, distance: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Bande passante (MHz) *</Label>
+                  <Input 
+                    type="number"
+                    step="1"
+                    value={formData.bandePassante}
+                    onChange={(e) => setFormData({...formData, bandePassante: e.target.value})}
+                  />
+                </div>
+              </div>
+              <Button onClick={handleCreateConfig} disabled={loading}>
+                {loading ? "En cours..." : "Continuer"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Étape 2: Émetteur, récepteur et atténuations */}
+        {etape === 2 && (
+          <>
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Paramètres de l'émetteur</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Puissance d'entrée (dBm) *</Label>
+                  <Input 
+                    type="number"
+                    step="0.1"
+                    placeholder="10"
+                    value={emetteurData.puissanceEntree}
+                    onChange={(e) => setEmetteurData({...emetteurData, puissanceEntree: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Fréquence (GHz) *</Label>
+                  <Input 
+                    type="number"
+                    step="0.1"
+                    placeholder="2.4"
+                    value={emetteurData.frequence}
+                    onChange={(e) => setEmetteurData({...emetteurData, frequence: e.target.value})}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Paramètres du récepteur</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Sensibilité (dBm) *</Label>
+                  <Input 
+                    type="number"
+                    step="0.1"
+                    placeholder="-85"
+                    value={recepteurData.sensibilite}
+                    onChange={(e) => setRecepteurData({...recepteurData, sensibilite: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Gain de réception (dB) *</Label>
+                  <Input 
+                    type="number"
+                    step="0.1"
+                    placeholder="15"
+                    value={recepteurData.gainReception}
+                    onChange={(e) => setRecepteurData({...recepteurData, gainReception: e.target.value})}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Atténuations</CardTitle>
+                <CardDescription>
+                  Ajoutez les différentes sources d'atténuation du signal
+                  {attenuations.length > 0 && (
+                    <span className="ml-2">
+                      • Total: <strong>{calculateTotalAttenuation()} dB</strong>
+                    </span>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {attenuations.map((att) => (
+                  <div key={att.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border">
+                    <div className="flex-1 grid grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-xs">Type</Label>
+                        <Select
+                          value={att.nomAttenuation}
+                          onValueChange={(value) => updateAttenuation(att.id, "nomAttenuation", value)}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {attenuationTypes.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type.replace(/_/g, ' ').toLowerCase()}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Valeur (dB/m)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          value={att.valeur}
+                          onChange={(e) => updateAttenuation(att.id, "valeur", e.target.value)}
+                          className="h-9"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Longueur (m)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          value={att.longueurCable}
+                          onChange={(e) => updateAttenuation(att.id, "longueurCable", e.target.value)}
+                          className="h-9"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeAttenuation(att.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+
+                <div className="space-y-3">
+                  <h5 className="font-medium flex items-center">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter une atténuation
+                  </h5>
+                  <div className="flex items-end gap-3">
+                    <div className="flex-1 grid grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-xs">Type</Label>
+                        <Select
+                          value={newAttenuation.nomAttenuation}
+                          onValueChange={(value) => setNewAttenuation({...newAttenuation, nomAttenuation: value})}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder="Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {attenuationTypes.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type.replace(/_/g, ' ').toLowerCase()}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Valeur (dB/m)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          placeholder="0.0"
+                          value={newAttenuation.valeur}
+                          onChange={(e) => setNewAttenuation({...newAttenuation, valeur: e.target.value})}
+                          className="h-9"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Longueur (m)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          placeholder="1.0"
+                          value={newAttenuation.longueurCable}
+                          onChange={(e) => setNewAttenuation({...newAttenuation, longueurCable: e.target.value})}
+                          className="h-9"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      onClick={addAttenuation}
+                      disabled={!newAttenuation.nomAttenuation || !newAttenuation.valeur}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Ajouter
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setEtape(1)}>
+                Retour
+              </Button>
+              <Button onClick={handleAddEquipment} disabled={loading}>
+                {loading ? "En cours..." : "Continuer vers la simulation"}
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* Étape 3: Simulation */}
+        {etape === 3 && (
+          <div>
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Résumé de la configuration</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Projet:</Label>
+                    <p>{projects.find(p => p.id === formData.projetId)?.nom || 'Non spécifié'}</p>
+                  </div>
+                  <div>
+                    <Label>Distance:</Label>
+                    <p>{formData.distance} km</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Bande passante:</Label>
+                    <p>{formData.bandePassante} MHz</p>
+                  </div>
+                  <div>
+                    <Label>Total atténuations:</Label>
+                    <p>{calculateTotalAttenuation()} dB</p>
+                  </div>
+                </div>
+
+                <Separator className="my-4" />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Émetteur:</Label>
+                    <p>{emetteurData.puissanceEntree} dBm @ {emetteurData.frequence} GHz</p>
+                  </div>
+                  <div>
+                    <Label>Récepteur:</Label>
+                    <p>Sensibilité: {recepteurData.sensibilite} dBm, Gain: {recepteurData.gainReception} dB</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setEtape(2)}>
+                Retour
+              </Button>
+              <Button onClick={handleSimuler} disabled={loading}>
+                {loading ? "Simulation en cours..." : "Lancer la simulation"}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default CreateConfigurationPage;

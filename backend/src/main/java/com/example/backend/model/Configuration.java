@@ -29,9 +29,11 @@ public class Configuration {
     private Notification notification;
 
     @OneToOne(optional = true, cascade = CascadeType.ALL)
+    @JoinColumn(name = "emetteur_id")
     private Emetteur emetteur;
 
     @OneToOne(optional = true, cascade = CascadeType.ALL)
+    @JoinColumn(name = "recepteur_id")
     private Recepteur recepteur;
 
     @ManyToOne
