@@ -28,3 +28,22 @@ export const getConfigurationByProjet = async (id) => {
   const response = await authorizedApi().get(`/configuration/projet/${id}`);
   return response.data;
 };
+export const addEmetteurToConfig = async (configId, data) => {
+  const response = await authorizedApi().post(`/configuration/${configId}/emetteur`, data)
+  return response.data;
+}
+
+export const addRecepteurToConfig = async (configId, data) => {
+  const response = await authorizedApi().post(`/configuration/${configId}/recepteur`, data)
+  return response.data;
+}
+
+export const addAttenuationsToConfig = async (configId, data) => {
+  const response = await authorizedApi().post(`/configuration/${configId}/attenuations`, data)
+  return response.data;
+}
+
+export const simulerConfiguration = async (configId) => {
+  const response = await authorizedApi().post(`/configuration/${configId}/simuler`);
+  return response.data;
+}

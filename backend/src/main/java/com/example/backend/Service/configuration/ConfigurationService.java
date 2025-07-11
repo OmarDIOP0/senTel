@@ -77,4 +77,5 @@ public class ConfigurationService implements IConfigurationService{
     public List<Configuration> getConfigurationByProjet(Long projetId) {
         return configurationRepo.findByProjetId(projetId);
     }
+
 }

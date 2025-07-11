@@ -1,85 +1,82 @@
 "use client"
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save, CheckCircle, Plus, Trash2 } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
-import { useAdminService } from "@/services/useAdminService";
-import { getAllProjets } from "@/services/projetService";
-import { createConfiguration,getConfigurationById } from "@/services/configurationService";
-import {createAttenuation} from "@/services/attenuationService";
-import {createRecepteur } from "@/services/recepteurService";
-import { createEmetteur } from "@/services/emetteurService";
-import { createDimensionnement } from "@/services/dimensionnementService";
-// Types d'atténuation
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Sidebar } from "@/components/layout/sidebar"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { ArrowLeft, Save, AlertCircle, CheckCircle, Plus, Trash2 } from "lucide-react"
+import { getAllProjets } from "@/services/projetService"
+import { createConfiguration, addEmetteurToConfig, addRecepteurToConfig, addAttenuationsToConfig, simulerConfiguration } from "@/services/configurationService"
+import { toast } from "@/components/ui/use-toast"
+import { useAdminService } from "@/services/useAdminService"
+
 const attenuationTypes = [
   "PERTE_EPISSURE_FUSION",
   "PERTE_EPISSURE_MECANIQUE",
   "CABLE_RACCORDEMENT",
   "PERTE_CONNECTEUR"
-];
+]
 
-const CreateConfigurationPage = () => {
-  const [etape, setEtape] = useState(1);
-  const [configurationId, setconfigurationId] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [projects, setProjects] = useState([]);
-  const router = useRouter();
-  const { profileData } = useAdminService();
+export default function CreateConfigurationPage() {
+  const [etape, setEtape] = useState(1)
+  const [configId, setConfigId] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
+  const [projects, setProjects] = useState([])
+  const [rapport, setRapport] = useState(null)
+  const router = useRouter()
+  const { profileData } = useAdminService()
 
   // Données du formulaire
   const [formData, setFormData] = useState({
     projetId: "",
     distance: "",
     bandePassante: "",
-  });
+  })
 
   const [emetteurData, setEmetteurData] = useState({
     puissanceEntree: "",
     frequence: ""
-  });
+  })
 
   const [recepteurData, setRecepteurData] = useState({
     sensibilite: "",
-    gainReception: "",
-  });
+    gainReception: ""
+  })
 
-  const [attenuations, setAttenuations] = useState([]);
+  const [attenuations, setAttenuations] = useState([])
   const [newAttenuation, setNewAttenuation] = useState({ 
     nomAttenuation: "", 
     valeur: "", 
     longueurCable: "1" 
-  });
+  })
 
-  // Charger les projets au montage
+  // Charger les projets
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        setLoading(true);
-        const response = await getAllProjets();
-        setProjects(response.data || []);
+        const response = await getAllProjets()
+        setProjects(response.data || [])
       } catch (err) {
-        setError("Erreur lors du chargement des projets");
-        toast({ variant: "destructive", title: "Erreur", description: error });
-      } finally {
-        setLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de charger les projets",
+        })
       }
-    };
-    loadProjects();
-  }, []);
+    }
+    loadProjects()
+  }, [])
 
-  // Fonctions pour gérer les atténuations
+  // Gestion des atténuations
   const addAttenuation = () => {
     if (newAttenuation.nomAttenuation && newAttenuation.valeur) {
       const newAtt = {
@@ -87,139 +84,144 @@ const CreateConfigurationPage = () => {
         nomAttenuation: newAttenuation.nomAttenuation,
         valeur: parseFloat(newAttenuation.valeur),
         longueurCable: parseFloat(newAttenuation.longueurCable) || 1
-      };
-      setAttenuations([...attenuations, newAtt]);
-      setNewAttenuation({ nomAttenuation: "", valeur: "", longueurCable: "1" });
+      }
+      setAttenuations([...attenuations, newAtt])
+      setNewAttenuation({ nomAttenuation: "", valeur: "", longueurCable: "1" })
     }
-  };
+  }
 
   const removeAttenuation = (id) => {
-    setAttenuations(attenuations.filter(att => att.id !== id));
-  };
-
-  const updateAttenuation = (id, field, value) => {
-    setAttenuations(attenuations.map(att => 
-      att.id === id ? { ...att, [field]: value } : att
-    ));
-  };
+    setAttenuations(attenuations.filter(att => att.id !== id))
+  }
 
   const calculateTotalAttenuation = () => {
     return attenuations.reduce(
       (total, att) => total + (parseFloat(att.valeur) * parseFloat(att.longueurCable || 1)), 
       0
-    ).toFixed(2);
-  };
+    ).toFixed(2)
+  }
 
-  // Étape 1: Créer la configuration de base
+  // Étape 1: Créer la configuration
   const handleCreateConfig = async () => {
     if (!formData.projetId || !formData.distance || !formData.bandePassante) {
-      setError("Veuillez remplir tous les champs obligatoires");
-      return;
+      setError("Veuillez remplir tous les champs obligatoires")
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-
       const response = await createConfiguration({
         ...formData,
         clientId: profileData?.id
-      });
-      
-      const data = await response.json();
-      setconfigurationId(data.id);
-      setEtape(2);
+      })
+      setConfigId(response.data.id)
+      setEtape(2)
     } catch (err) {
-      setError("Erreur lors de la création");
-      toast({ variant: "destructive", title: "Erreur", description: error });
+      setError(err.response?.data?.message || "Erreur lors de la création")
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error,
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // Étape 2: Ajouter émetteur et récepteur
+  // Étape 2: Ajouter équipements et atténuations
   const handleAddEquipment = async () => {
     if (!emetteurData.puissanceEntree || !emetteurData.frequence || 
         !recepteurData.sensibilite || !recepteurData.gainReception) {
-      setError("Veuillez remplir tous les champs des équipements");
-      return;
+      setError("Veuillez remplir tous les champs des équipements")
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
       // Ajouter émetteur
-      const emetteurResponse = await createEmetteur({
-        ...emetteurData,
-        configurationId: configurationId
-      });
-      const emetteur = await emetteurResponse.json();
-
+      await addEmetteurToConfig(configId, emetteurData)
+      
       // Ajouter récepteur
-      const recepteurResponse = await createRecepteur({
-        ...recepteurData,
-        configurationId: configurationId
-      });
-      const recepteur = await recepteurResponse.json();
-      setEtape(3);
+      await addRecepteurToConfig(configId, recepteurData)
+      
+      // Ajouter atténuations
+      if (attenuations.length > 0) {
+        await addAttenuationsToConfig(configId, attenuations)
+      }
+      
+      setEtape(3)
     } catch (err) {
-      setError("Erreur lors de l'ajout des équipements");
-      toast({ variant: "destructive", title: "Erreur", description: error });
+      setError(err.response?.data?.message || "Erreur lors de l'ajout des équipements")
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error,
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // Étape 3: Simuler
+  // Étape 3: Simulation
   const handleSimuler = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      // D'abord ajouter les atténuations
-      for (const att of attenuations) {
-        await createAttenuation({
-          ...att,
-          configurationId: configurationId
-        });
-      }
-      // Puis lancer la simulation
-      const response = await createDimensionnement({
-        configurationId: configurationId,
-        emetteur: emetteurData,
-        recepteur: recepteurData,
-        attenuations: attenuations.map(att => ({
-          nomAttenuation: att.nomAttenuation,
-          valeur: att.valeur,
-          longueurCable: att.longueurCable
-        }))
-      });
-      if (!response.ok) {
-        throw new Error("Erreur lors de la simulation");
-      }
-      const rapport = await response.json();
-      
-      setSuccess(true);
-      toast({ title: "Succès", description: "Simulation terminée" });
-      
-      setTimeout(() => router.push("/configurations"), 2000);
+      const response = await simulerConfiguration(configId)
+      setRapport(response.data)
+      setSuccess(true)
+      toast({
+        title: "Succès",
+        description: "Simulation terminée",
+      })
+      setTimeout(() => router.push("/configurations"), 2000)
     } catch (err) {
-      setError("Erreur lors de la simulation");
-      toast({ variant: "destructive", title: "Erreur", description: error });
+      setError(err.response?.data?.message || "Erreur lors de la simulation")
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error,
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  if (success) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64 p-6 lg:p-8">
+          <Card className="max-w-md mx-auto mt-20">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold mb-2">Configuration créée !</h2>
+                <p className="text-gray-600 mb-4">
+                  Votre configuration a été simulée avec succès.
+                </p>
+                <Button onClick={() => router.push("/configurations")}>
+                  Retour aux configurations
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
       
       <div className="flex-1 lg:ml-64 p-6 lg:p-8">
-        {/* En-tête */}
         <div className="flex items-center mb-8">
           <Button variant="ghost" onClick={() => router.back()}>
             <ArrowLeft className="mr-2" /> Retour
           </Button>
           <div className="ml-4">
             <h1 className="text-3xl font-bold">Nouvelle configuration</h1>
-            <p className="text-gray-600">Processus en {etape === 1 ? '3' : etape === 2 ? '2' : '1'} étapes</p>
+            <p className="text-gray-600">Étape {etape} sur 3</p>
           </div>
         </div>
 
@@ -236,15 +238,18 @@ const CreateConfigurationPage = () => {
           ))}
         </div>
 
-        {/* Messages d'erreur/succès */}
-        {error && <Alert variant="destructive">{error}</Alert>}
-        {success && <Alert variant="success">Configuration créée avec succès!</Alert>}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         {/* Étape 1: Configuration de base */}
         {etape === 1 && (
           <Card>
             <CardHeader>
-              <CardTitle>Paramètres de base</CardTitle>
+              <CardTitle>Configuration de base</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -252,10 +257,9 @@ const CreateConfigurationPage = () => {
                 <Select 
                   value={formData.projetId} 
                   onValueChange={(value) => setFormData({...formData, projetId: value})}
-                  disabled={loading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Choisir un projet" />
+                    <SelectValue placeholder="Sélectionnez un projet" />
                   </SelectTrigger>
                   <SelectContent>
                     {projects.map((project) => (
@@ -266,6 +270,7 @@ const CreateConfigurationPage = () => {
                   </SelectContent>
                 </Select>
               </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Distance (km) *</Label>
@@ -280,12 +285,12 @@ const CreateConfigurationPage = () => {
                   <Label>Bande passante (MHz) *</Label>
                   <Input 
                     type="number"
-                    step="1"
                     value={formData.bandePassante}
                     onChange={(e) => setFormData({...formData, bandePassante: e.target.value})}
                   />
                 </div>
               </div>
+              
               <Button onClick={handleCreateConfig} disabled={loading}>
                 {loading ? "En cours..." : "Continuer"}
               </Button>
@@ -293,7 +298,7 @@ const CreateConfigurationPage = () => {
           </Card>
         )}
 
-        {/* Étape 2: Émetteur, récepteur et atténuations */}
+        {/* Étape 2: Équipements et atténuations */}
         {etape === 2 && (
           <>
             <Card className="mb-6">
@@ -306,7 +311,6 @@ const CreateConfigurationPage = () => {
                   <Input 
                     type="number"
                     step="0.1"
-                    placeholder="10"
                     value={emetteurData.puissanceEntree}
                     onChange={(e) => setEmetteurData({...emetteurData, puissanceEntree: e.target.value})}
                   />
@@ -316,7 +320,6 @@ const CreateConfigurationPage = () => {
                   <Input 
                     type="number"
                     step="0.1"
-                    placeholder="2.4"
                     value={emetteurData.frequence}
                     onChange={(e) => setEmetteurData({...emetteurData, frequence: e.target.value})}
                   />
@@ -334,7 +337,6 @@ const CreateConfigurationPage = () => {
                   <Input 
                     type="number"
                     step="0.1"
-                    placeholder="-85"
                     value={recepteurData.sensibilite}
                     onChange={(e) => setRecepteurData({...recepteurData, sensibilite: e.target.value})}
                   />
@@ -344,7 +346,6 @@ const CreateConfigurationPage = () => {
                   <Input 
                     type="number"
                     step="0.1"
-                    placeholder="15"
                     value={recepteurData.gainReception}
                     onChange={(e) => setRecepteurData({...recepteurData, gainReception: e.target.value})}
                   />
@@ -356,23 +357,20 @@ const CreateConfigurationPage = () => {
               <CardHeader>
                 <CardTitle>Atténuations</CardTitle>
                 <CardDescription>
-                  Ajoutez les différentes sources d'atténuation du signal
-                  {attenuations.length > 0 && (
-                    <span className="ml-2">
-                      • Total: <strong>{calculateTotalAttenuation()} dB</strong>
-                    </span>
-                  )}
+                  Total: <strong>{calculateTotalAttenuation()} dB</strong>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {attenuations.map((att) => (
-                  <div key={att.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border">
+                  <div key={att.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
                     <div className="flex-1 grid grid-cols-3 gap-3">
                       <div>
                         <Label className="text-xs">Type</Label>
                         <Select
                           value={att.nomAttenuation}
-                          onValueChange={(value) => updateAttenuation(att.id, "nomAttenuation", value)}
+                          onValueChange={(value) => setAttenuations(attenuations.map(a => 
+                            a.id === att.id ? {...a, nomAttenuation: value} : a
+                          ))}
                         >
                           <SelectTrigger className="h-9">
                             <SelectValue />
@@ -392,7 +390,9 @@ const CreateConfigurationPage = () => {
                           type="number"
                           step="0.1"
                           value={att.valeur}
-                          onChange={(e) => updateAttenuation(att.id, "valeur", e.target.value)}
+                          onChange={(e) => setAttenuations(attenuations.map(a => 
+                            a.id === att.id ? {...a, valeur: e.target.value} : a
+                          ))}
                           className="h-9"
                         />
                       </div>
@@ -402,7 +402,9 @@ const CreateConfigurationPage = () => {
                           type="number"
                           step="0.1"
                           value={att.longueurCable}
-                          onChange={(e) => updateAttenuation(att.id, "longueurCable", e.target.value)}
+                          onChange={(e) => setAttenuations(attenuations.map(a => 
+                            a.id === att.id ? {...a, longueurCable: e.target.value} : a
+                          ))}
                           className="h-9"
                         />
                       </div>
@@ -546,7 +548,5 @@ const CreateConfigurationPage = () => {
         )}
       </div>
     </div>
-  );
-};
-
-export default CreateConfigurationPage;
+  )
+}
