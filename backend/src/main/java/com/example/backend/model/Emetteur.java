@@ -19,7 +19,7 @@ public class Emetteur {
 
     private double frequence;
 
-    @OneToMany(mappedBy = "emetteur",cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<Configuration> configurations;
+    @ManyToOne
+    private Configuration configuration;
 
 }

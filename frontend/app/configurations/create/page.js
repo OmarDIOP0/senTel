@@ -52,8 +52,8 @@ export default function CreateConfigurationPage() {
     projetId: "",
     distance: "",
     bandePassante: "",
-    emetteurId: "",
-    recepteurId: "",
+    // emetteurId: "",
+    // recepteurId: "",
     clientId: ""
   })
 
@@ -151,57 +151,72 @@ export default function CreateConfigurationPage() {
     const { profileData } = useAdminService();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-    console.log("Form values:", formData)
-    formData.clientId = profileData?.id;
-    // Validation
-    if (!formData.projetId || !formData.distance || !formData.bandePassante || !formData.emetteurId || !formData.recepteurId) {
-      setError("Veuillez remplir tous les champs obligatoires")
-      setLoading(false)
-      return
-    }
+  e.preventDefault()
+  setLoading(true)
+  setError("")
+  formData.clientId = profileData?.id
 
-    try {
-      // Préparer la requête selon ConfigurationRequest
-      const configRequest = {
-        distance: parseFloat(formData.distance),
-        bandePassante: parseFloat(formData.bandePassante),
-        emetteurId: parseInt(formData.emetteurId),
-        recepteurId: parseInt(formData.recepteurId),
-        projetId: parseInt(formData.projetId),
-        clientId: 1, // À remplacer par l'ID du client connecté
-        attenuations: attenuations.map(att => ({
-          nomAttenuation: att.nomAttenuation,
-          valeur: parseFloat(att.valeur),
-          longueurCable: parseFloat(att.longueurCable)
-        }))
-      }
-
-      const response = await createConfiguration(configRequest)
-      
-      toast({
-        title: "Succès",
-        description: "Configuration créée avec succès",
-      })
-      
-      setSuccess(true)
-      setTimeout(() => {
-        router.push("/configurations")
-      }, 2000)
-    } catch (err) {
-      console.error("Erreur création configuration:", err)
-      setError(err.response?.data?.message || "Erreur lors de la création")
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: err.response?.data?.message || "Erreur lors de la création",
-      })
-    } finally {
-      setLoading(false)
-    }
+  if (!formData.projetId || !formData.distance || !formData.bandePassante) {
+    setError("Veuillez remplir tous les champs obligatoires")
+    setLoading(false)
+    return
   }
+
+  try {
+    // 1. Créer l'émetteur
+    const newEmetteur = await createEmetteur({
+      puissanceEntree: parseFloat(emetteurData.puissanceEntree),
+      frequence: parseFloat(emetteurData.frequence),
+      projetId: parseInt(formData.projetId)
+    })
+
+    // 2. Créer le récepteur
+    const newRecepteur = await createRecepteur({
+      sensibilite: parseFloat(recepteurData.sensibilite),
+      gainReception: parseFloat(recepteurData.gainReception),
+      projetId: parseInt(formData.projetId)
+    })
+
+    // 3. Créer la configuration
+    const configRequest = {
+      distance: parseFloat(formData.distance),
+      bandePassante: parseFloat(formData.bandePassante),
+      emetteurId: newEmetteur.id,
+      recepteurId: newRecepteur.id,
+      projetId: parseInt(formData.projetId),
+      clientId: profileData?.id,
+      attenuations: attenuations.map(att => ({
+        nomAttenuation: att.nomAttenuation,
+        valeur: parseFloat(att.valeur),
+        longueurCable: parseFloat(att.longueurCable)
+      }))
+    }
+
+    const response = await createConfiguration(configRequest)
+
+    toast({
+      title: "Succès",
+      description: "Configuration créée avec succès",
+    })
+
+    setSuccess(true)
+    setTimeout(() => {
+      router.push("/configurations")
+    }, 2000)
+
+  } catch (err) {
+    console.error("Erreur création configuration:", err)
+    setError(err.response?.data?.message || "Erreur lors de la création")
+    toast({
+      variant: "destructive",
+      title: "Erreur",
+      description: err.response?.data?.message || "Erreur lors de la création",
+    })
+  } finally {
+    setLoading(false)
+  }
+}
+
 
   if (success) {
     return (

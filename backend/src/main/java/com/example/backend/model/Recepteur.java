@@ -19,6 +19,6 @@ public class Recepteur {
 
     private double gainReception;
 
-    @OneToMany(mappedBy = "recepteur",cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<Configuration> configurations;
+    @ManyToOne
+    private Configuration configuration;
 }

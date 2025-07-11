@@ -21,10 +21,6 @@ public class ConfigurationService implements IConfigurationService{
 
     @Override
     public Configuration creerConfiguration(ConfigurationRequest request) {
-        Emetteur emetteur = emetteurRepo.findById(request.getEmetteurId())
-                .orElseThrow(() -> new ResourceNotFoundException("Émetteur introuvable"));
-        Recepteur recepteur = recepteurRepo.findById(request.getRecepteurId())
-                .orElseThrow(() -> new ResourceNotFoundException("Récepteur introuvable"));
         Client client = clientRepo.findById(request.getClientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Client introuvable"));
         Projet projet = projetRepo.findById(request.getProjetId())
@@ -32,8 +28,6 @@ public class ConfigurationService implements IConfigurationService{
         Configuration configuration = new Configuration();
         configuration.setDistance(request.getDistance());
         configuration.setBandePassante(request.getBandePassante());
-        configuration.setEmetteur(emetteur);
-        configuration.setRecepteur(recepteur);
         configuration.setClient(client);
         configuration.setProjet(projet);
         return configurationRepo.save(configuration);
