@@ -21,6 +21,6 @@ export const updateDimensionnement = async (data) => {
 };
 
 export const deleteDimensionnement = async (id) => {
-  const response = await authorizedApi().delete(`/dimensionnement/rapport${id}`);
+  const response = await authorizedApi().delete(`/dimensionnement/rapport/${id}`);
   return response.data;
 };

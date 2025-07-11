@@ -19,6 +19,7 @@ import { createConfiguration,getConfigurationById } from "@/services/configurati
 import {createAttenuation} from "@/services/attenuationService";
 import {createRecepteur } from "@/services/recepteurService";
 import { createEmetteur } from "@/services/emetteurService";
+import { createDimensionnement } from "@/services/dimensionnementService";
 // Types d'atténuation
 const attenuationTypes = [
   "PERTE_EPISSURE_FUSION",
@@ -29,7 +30,7 @@ const attenuationTypes = [
 
 const CreateConfigurationPage = () => {
   const [etape, setEtape] = useState(1);
-  const [configId, setConfigId] = useState(null);
+  const [configurationId, setconfigurationId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -51,7 +52,7 @@ const CreateConfigurationPage = () => {
 
   const [recepteurData, setRecepteurData] = useState({
     sensibilite: "",
-    gainReception: ""
+    gainReception: "",
   });
 
   const [attenuations, setAttenuations] = useState([]);
@@ -125,7 +126,7 @@ const CreateConfigurationPage = () => {
       });
       
       const data = await response.json();
-      setConfigId(data.id);
+      setconfigurationId(data.id);
       setEtape(2);
     } catch (err) {
       setError("Erreur lors de la création");
@@ -148,14 +149,14 @@ const CreateConfigurationPage = () => {
       // Ajouter émetteur
       const emetteurResponse = await createEmetteur({
         ...emetteurData,
-        configurationId: configId
+        configurationId: configurationId
       });
       const emetteur = await emetteurResponse.json();
 
       // Ajouter récepteur
       const recepteurResponse = await createRecepteur({
         ...recepteurData,
-        configurationId: configId
+        configurationId: configurationId
       });
       const recepteur = await recepteurResponse.json();
       setEtape(3);
@@ -175,13 +176,23 @@ const CreateConfigurationPage = () => {
       for (const att of attenuations) {
         await createAttenuation({
           ...att,
-          configurationId: configId
+          configurationId: configurationId
         });
       }
       // Puis lancer la simulation
-      const response = await fetch(`/api/configurations/${configId}/simuler`, {
-        method: 'POST'
+      const response = await createDimensionnement({
+        configurationId: configurationId,
+        emetteur: emetteurData,
+        recepteur: recepteurData,
+        attenuations: attenuations.map(att => ({
+          nomAttenuation: att.nomAttenuation,
+          valeur: att.valeur,
+          longueurCable: att.longueurCable
+        }))
       });
+      if (!response.ok) {
+        throw new Error("Erreur lors de la simulation");
+      }
       const rapport = await response.json();
       
       setSuccess(true);
