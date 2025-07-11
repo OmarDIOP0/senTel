@@ -6,6 +6,7 @@ import com.example.backend.model.Configuration;
 import com.example.backend.model.Rapport;
 import com.example.backend.request.AttenuationConfigRequest;
 import com.example.backend.request.ConfigurationRequest;
+import com.example.backend.request.EmetteurConfigRequest;
 import com.example.backend.request.RecepteurConfigRequest;
 import com.example.backend.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -150,7 +151,7 @@ public class ConfigurationController {
     @PostMapping("/{configId}/emetteur")
     public ResponseEntity<Configuration> addEmetteur(
             @PathVariable Long configId,
-            @RequestBody EmetteurRequest request) {
+            @RequestBody EmetteurConfigRequest request) {
         return ResponseEntity.ok(configurationService.addEmetteur(configId, request));
     }
 
