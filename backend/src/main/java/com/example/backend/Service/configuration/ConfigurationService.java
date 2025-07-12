@@ -4,10 +4,7 @@ import com.example.backend.Service.dimensionnement.DimensionnementService;
 import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.model.*;
 import com.example.backend.repository.*;
-import com.example.backend.request.AttenuationConfigRequest;
-import com.example.backend.request.ConfigurationRequest;
-import com.example.backend.request.EmetteurConfigRequest;
-import com.example.backend.request.RecepteurConfigRequest;
+import com.example.backend.request.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -137,7 +134,12 @@ public class ConfigurationService implements IConfigurationService{
     public Rapport simulerConfiguration(Long configId) {
         Configuration config = configurationRepo.findById(configId)
                 .orElseThrow(() -> new ResourceNotFoundException("Configuration non trouvée"));
-        return dimensionnementService.genererRapportComplet(config);
+        RapportConfRequest request = new RapportConfRequest();
+        request.setConfigurationId(configId);
+        request.setClientId(config.getClient() != null ? config.getClient().getId() : null);
+        request.setAdminId(config.getAdministrateur() != null ? config.getAdministrateur().getId() : null);
+
+        return dimensionnementService.genererRapportComplet(request);
     }
 
 }

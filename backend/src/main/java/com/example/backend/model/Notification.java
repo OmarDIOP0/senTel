@@ -1,6 +1,7 @@
 package com.example.backend.model;
 
 import com.example.backend.model.enums.Status;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,9 +28,17 @@ public class Notification {
 
     @OneToOne
     @JoinColumn(name = "configuration_id", nullable = false)
+    @JsonIgnore
     private Configuration configuration;
 
     @ManyToOne
-    @JoinColumn(name = "client_id",nullable = false)
+    @JoinColumn(name = "client_id",nullable = true)
+    @JsonIgnore
     private Client client;
+
+    @ManyToOne
+    @JoinColumn(name = "admin_id",nullable = true)
+    @JsonIgnore
+    private Administrateur administrateur;
+
 }

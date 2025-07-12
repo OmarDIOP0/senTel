@@ -1,12 +1,12 @@
 package com.example.backend.Service.dimensionnement;
 
 import com.example.backend.Service.dimensionnement.IDimensionnementService;
+import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.model.*;
 import com.example.backend.model.enums.Status;
-import com.example.backend.repository.ConfigurationRepo;
-import com.example.backend.repository.NotificationRepo;
-import com.example.backend.repository.RapportRepo;
+import com.example.backend.repository.*;
 import com.example.backend.request.ConfigurationRequest;
+import com.example.backend.request.RapportConfRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,16 +20,19 @@ public class DimensionnementService implements IDimensionnementService {
     private final ConfigurationRepo configurationRepo;
     private final RapportRepo rapportRepo;
     private final NotificationRepo notificationRepo;
+    private final AdminRepo adminRepo;
+    private final ClientRepo clientRepo;
 
     @Override
-    public Rapport genererRapportComplet(Configuration request) {
-        Optional<Configuration> configOpt = configurationRepo.findById(request.getId());
-        if (configOpt.isEmpty()) {
-            throw new RuntimeException("Configuration introuvable avec ID: " + request.getId());
-        }
-        Configuration config = configOpt.get();
+    public Rapport genererRapportComplet(RapportConfRequest request) {
+        Configuration config = configurationRepo.findById(request.getConfigurationId())
+                .orElseThrow(() -> new RuntimeException("Configuration introuvable avec ID: " + request.getConfigurationId()));
 
-        Rapport rapport = new Rapport();
+
+        Rapport rapport = rapportRepo.findByConfiguration(config).orElse(new Rapport());
+
+        rapport.setConfiguration(config);
+        rapport.setDate(LocalDateTime.now());
 
         // Calculs techniques
         double puissanceRecue = calculerPuissanceRecue(config);
@@ -37,14 +40,11 @@ public class DimensionnementService implements IDimensionnementService {
         double debit = estimerDebit5G(config);
         double latence = estimerLatence5G(config);
 
-        // Remplissage du rapport
-        rapport.setConfiguration(config);
         rapport.setPuissanceRecu(puissanceRecue);
         rapport.setMargeLiaison(marge);
         rapport.setDebitEstime(debit);
         rapport.setLatenceEstimee(latence);
         rapport.setNotePerformance(calculerScorePerformance(marge, debit, latence));
-        rapport.setDate(LocalDateTime.now());
         rapport.determineStatus();
         rapport.setConclusion(genererConclusion(rapport.getStatus()));
 
@@ -56,13 +56,25 @@ public class DimensionnementService implements IDimensionnementService {
         notif.setDescription("Le rapport de la configuration #" + config.getId() + " a été généré.");
         notif.setDate(LocalDateTime.now());
         notif.setStatus(rapport.getStatus());
-        notif.setClient(config.getClient());
         notif.setConfiguration(config);
 
-        notificationRepo.save(notif);
+        if (request.getClientId() != null) {
+            Client client = clientRepo.findById(request.getClientId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Client introuvable avec ID: " + request.getClientId()));
+            notif.setClient(client);
+        } else if (request.getAdminId() != null) {
+            Administrateur admin = adminRepo.findById(request.getAdminId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Administrateur introuvable avec ID: " + request.getAdminId()));
+            notif.setAdministrateur(admin);
+        } else {
+            throw new IllegalArgumentException("Un client ou un administrateur doit être spécifié");
+        }
 
+        notificationRepo.save(notif);
         return rapport;
     }
+
+
 
     @Override
     public double calculerPuissanceRecue(Configuration config) {

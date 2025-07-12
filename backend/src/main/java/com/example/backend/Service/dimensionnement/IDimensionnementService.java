@@ -5,11 +5,12 @@ import com.example.backend.model.Emetteur;
 import com.example.backend.model.Rapport;
 import com.example.backend.model.Recepteur;
 import com.example.backend.request.ConfigurationRequest;
+import com.example.backend.request.RapportConfRequest;
 
 import java.util.List;
 
 public interface IDimensionnementService {
-    Rapport genererRapportComplet(Configuration request);
+    Rapport genererRapportComplet(RapportConfRequest request);
     double calculerPuissanceRecue(Configuration request);
     double calculerPertePropagation(Configuration request);
 

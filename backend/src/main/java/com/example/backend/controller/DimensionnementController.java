@@ -4,6 +4,7 @@ import com.example.backend.Service.dimensionnement.DimensionnementService;
 import com.example.backend.model.Configuration;
 import com.example.backend.model.Rapport;
 import com.example.backend.request.ConfigurationRequest;
+import com.example.backend.request.RapportConfRequest;
 import com.example.backend.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class DimensionnementController {
     private final DimensionnementService dimensionnementService;
 
     @PostMapping("/rapport")
-    public ResponseEntity<ApiResponse> genererRapport(@RequestBody Configuration request) {
+    public ResponseEntity<ApiResponse> genererRapport(@RequestBody RapportConfRequest request) {
         try {
             Rapport rapport = dimensionnementService.genererRapportComplet(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(true, "Rapport généré", rapport));

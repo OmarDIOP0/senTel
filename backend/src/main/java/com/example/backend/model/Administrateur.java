@@ -23,4 +23,7 @@ public class Administrateur extends Utilisateur {
 
     @OneToMany(mappedBy = "administrateur", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Configuration> configurations;
+
+    @OneToMany(mappedBy = "administrateur", cascade = CascadeType.ALL,orphanRemoval = true)
+    private List<Notification> notifications;
 }

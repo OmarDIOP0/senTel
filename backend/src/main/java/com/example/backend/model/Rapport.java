@@ -1,6 +1,7 @@
 package com.example.backend.model;
 
 import com.example.backend.model.enums.Status;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,6 +39,7 @@ public class Rapport {
 
     @OneToOne
     @JoinColumn(name = "configuration_id", nullable = false)
+    @JsonIgnore
     private Configuration configuration;
 
     public void determineStatus() {
