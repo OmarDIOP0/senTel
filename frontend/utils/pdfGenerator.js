@@ -1,4 +1,18 @@
-export const generateReportPDF = (rapport: any) => {
+export const generateReportPDF = (rapport) => {
+  // Formater les données pour l'affichage
+  const formattedDate = new Date(rapport.date).toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+
+  const debitFormatted = (rapport.debitEstime / 1000000).toFixed(2)
+  const puissanceFormatted = rapport.puissanceRecu?.toFixed(2)
+  const noteFormatted = rapport.notePerformance?.toFixed(2)
+  const latenceFormatted = rapport.latenceEstimee?.toFixed(2)
+
   // Créer le contenu HTML du rapport
   const htmlContent = `
     <!DOCTYPE html>
@@ -57,14 +71,14 @@ export const generateReportPDF = (rapport: any) => {
             .performance-score {
                 text-align: center;
                 padding: 20px;
-                background: ${rapport.notePerformance >= 90 ? "#dcfce7" : rapport.notePerformance >= 80 ? "#dbeafe" : "#fef3c7"};
+                background: ${rapport.notePerformance >= 0 ? "#dcfce7" : rapport.notePerformance >= -50 ? "#dbeafe" : "#fef3c7"};
                 border-radius: 12px;
                 margin: 20px 0;
             }
             .score {
                 font-size: 48px;
                 font-weight: bold;
-                color: ${rapport.notePerformance >= 90 ? "#16a34a" : rapport.notePerformance >= 80 ? "#2563eb" : "#d97706"};
+                color: ${rapport.notePerformance >= 0 ? "#16a34a" : rapport.notePerformance >= -50 ? "#2563eb" : "#d97706"};
             }
             .score-label {
                 font-size: 14px;
@@ -108,8 +122,8 @@ export const generateReportPDF = (rapport: any) => {
                 border-radius: 20px;
                 font-size: 12px;
                 font-weight: bold;
-                background: ${rapport.statut === "VALIDE" ? "#dcfce7" : rapport.statut === "EN_COURS" ? "#dbeafe" : "#fef3c7"};
-                color: ${rapport.statut === "VALIDE" ? "#16a34a" : rapport.statut === "EN_COURS" ? "#2563eb" : "#d97706"};
+                background: ${rapport.status === "VALIDE" ? "#dcfce7" : rapport.status === "INSUFFISANT" ? "#fee2e2" : "#fef3c7"};
+                color: ${rapport.status === "VALIDE" ? "#16a34a" : rapport.status === "INSUFFISANT" ? "#dc2626" : "#d97706"};
             }
         </style>
     </head>
@@ -117,23 +131,19 @@ export const generateReportPDF = (rapport: any) => {
         <div class="header">
             <div class="logo">📡 SenTel</div>
             <div class="report-title">Rapport de Dimensionnement 5G</div>
-            <div>Rapport #${rapport.id} - ${rapport.projet}</div>
+            <div>Rapport #${rapport.id}</div>
         </div>
 
         <div class="report-info">
             <div class="info-section">
                 <div class="info-label">Date de génération</div>
-                <div class="info-value">${rapport.date}</div>
-            </div>
-            <div class="info-section">
-                <div class="info-label">Configuration ID</div>
-                <div class="info-value">#${rapport.configurationId}</div>
+                <div class="info-value">${formattedDate}</div>
             </div>
             <div class="info-section">
                 <div class="info-label">Statut</div>
                 <div class="info-value">
                     <span class="status-badge">
-                        ${rapport.statut === "VALIDE" ? "Validé" : rapport.statut === "EN_COURS" ? "En cours" : "En attente"}
+                        ${rapport.status === "VALIDE" ? "Validé" : rapport.status === "INSUFFISANT" ? "Insuffisant" : rapport.status || "Non spécifié"}
                     </span>
                 </div>
             </div>
@@ -142,8 +152,8 @@ export const generateReportPDF = (rapport: any) => {
         <div class="performance-section">
             <h2>Performance Globale</h2>
             <div class="performance-score">
-                <div class="score">${rapport.notePerformance}</div>
-                <div class="score-label">Score de Performance (/100)</div>
+                <div class="score">${noteFormatted}</div>
+                <div class="score-label">Score de Performance</div>
             </div>
         </div>
 
@@ -151,36 +161,56 @@ export const generateReportPDF = (rapport: any) => {
             <div class="detail-card">
                 <div class="detail-title">Puissance Reçue</div>
                 <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">
-                    ${rapport.puissanceRecue} dBm
+                    ${puissanceFormatted} dBm
                 </div>
                 <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
-                    ${rapport.puissanceRecue > -80 ? "Excellent signal" : rapport.puissanceRecue > -90 ? "Bon signal" : "Signal faible"}
+                    ${rapport.puissanceRecu > -80 ? "Excellent signal" : rapport.puissanceRecu > -90 ? "Bon signal" : "Signal faible"}
                 </div>
             </div>
             
             <div class="detail-card">
-                <div class="detail-title">Qualité du Lien</div>
+                <div class="detail-title">Débit Estimé</div>
                 <div style="font-size: 24px; font-weight: bold; color: #10b981;">
-                    ${rapport.notePerformance >= 90 ? "Excellent" : rapport.notePerformance >= 80 ? "Bon" : "Moyen"}
+                    ${debitFormatted} Mbps
                 </div>
                 <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
-                    Basé sur les métriques de performance
+                    Débit théorique estimé
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-title">Marge de Liaison</div>
+                <div style="font-size: 24px; font-weight: bold; color: #8b5cf6;">
+                    ${rapport.margeLiaison?.toFixed(2)} dB
+                </div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
+                    Marge entre le signal reçu et le seuil
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-title">Latence Estimée</div>
+                <div style="font-size: 24px; font-weight: bold; color: #ec4899;">
+                    ${latenceFormatted} ms
+                </div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
+                    Temps de réponse estimé
                 </div>
             </div>
         </div>
 
         <div class="conclusion-section">
             <h3 style="margin-top: 0;">Conclusion et Recommandations</h3>
-            <p>${rapport.conclusion}</p>
+            <p>${rapport.conclusion || "Aucune conclusion fournie"}</p>
             
             ${
-              rapport.notePerformance < 80
+              rapport.status === "INSUFFISANT"
                 ? `
             <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 15px; margin-top: 15px;">
                 <strong style="color: #dc2626;">⚠️ Points d'attention :</strong>
                 <ul style="margin: 10px 0; padding-left: 20px;">
                     <li>Performance inférieure aux standards recommandés</li>
-                    <li>Révision de la configuration suggérée</li>
+                    <li>${rapport.conclusion || "La liaison ne répond pas aux exigences minimales pour la 5G"}</li>
                     <li>Vérification des paramètres d'antenne recommandée</li>
                 </ul>
             </div>
@@ -190,7 +220,7 @@ export const generateReportPDF = (rapport: any) => {
                 <strong style="color: #16a34a;">✅ Configuration optimale :</strong>
                 <ul style="margin: 10px 0; padding-left: 20px;">
                     <li>Performance conforme aux standards</li>
-                    <li>Déploiement recommandé</li>
+                    <li>${rapport.conclusion || "La liaison répond aux exigences pour la 5G"}</li>
                     <li>Monitoring continu suggéré</li>
                 </ul>
             </div>
@@ -200,7 +230,7 @@ export const generateReportPDF = (rapport: any) => {
 
         <div class="footer">
             <p>Rapport généré automatiquement par SenTel - Plateforme de dimensionnement 5G</p>
-            <p>© 2024 SenTel. Tous droits réservés.</p>
+            <p>© ${new Date().getFullYear()} SenTel. Tous droits réservés.</p>
         </div>
     </body>
     </html>
@@ -216,8 +246,6 @@ export const generateReportPDF = (rapport: any) => {
     printWindow.onload = () => {
       setTimeout(() => {
         printWindow.print()
-        // Optionnel: fermer la fenêtre après impression
-        // printWindow.close()
       }, 500)
     }
   }

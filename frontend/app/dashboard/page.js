@@ -8,8 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { jwtDecode } from "jwt-decode"
-import { useAdminService } from "../../services/useAdminService"
 import {
   Line,AreaChart,Area,XAxis,YAxis, CartesianGrid,Tooltip,ResponsiveContainer,PieChart,Pie,Cell,
 } from "recharts"
@@ -32,129 +30,63 @@ import {
 } from "lucide-react"
 import AuthContext from "@/context/AuthContext"
 
-// Mock data améliorées
-const performanceData = [
-  { month: "Jan", performance: 85, target: 90, configurations: 12 },
-  { month: "Fév", performance: 88, target: 90, configurations: 15 },
-  { month: "Mar", performance: 92, target: 90, configurations: 18 },
-  { month: "Avr", performance: 89, target: 90, configurations: 22 },
-  { month: "Mai", performance: 94, target: 90, configurations: 25 },
-  { month: "Jun", performance: 96, target: 90, configurations: 28 },
-]
+import { getAllConfigurations } from "@/services/configurationService";
+import { getAllRapports } from "@/services/rapportService";
+import { getAllNotifications } from "@/services/notificationService";
+import { getAllClients } from "@/services/clientService";
+import { useAdminService } from "@/services/useAdminService";
 
-const networkCoverageData = [
-  { zone: "Urbain Dense", coverage: 95, color: "#10b981" },
-  { zone: "Urbain", coverage: 88, color: "#3b82f6" },
-  { zone: "Suburbain", coverage: 82, color: "#f59e0b" },
-  { zone: "Rural", coverage: 76, color: "#ef4444" },
-]
-
-const projectStatusData = [
-  { name: "Actifs", value: 8, color: "#10b981" },
-  { name: "En cours", value: 5, color: "#3b82f6" },
-  { name: "En attente", value: 3, color: "#f59e0b" },
-  { name: "Terminés", value: 12, color: "#6b7280" },
-]
-
-const recentActivities = [
-  {
-    id: 1,
-    type: "configuration",
-    title: "Nouvelle configuration créée",
-    description: "Configuration #127 pour Projet Alpha - Zone urbaine dense",
-    time: "Il y a 2h",
-    user: "Marie Martin",
-    status: "success",
-  },
-  {
-    id: 2,
-    type: "report",
-    title: "Rapport validé",
-    description: "Rapport #45 - Performance excellente (96%)",
-    time: "Il y a 4h",
-    user: "Jean Dupont",
-    status: "success",
-  },
-  {
-    id: 3,
-    type: "alert",
-    title: "Performance dégradée",
-    description: "Configuration #118 - Performance sous le seuil (68%)",
-    time: "Il y a 6h",
-    user: "Système",
-    status: "warning",
-  },
-  {
-    id: 4,
-    type: "user",
-    title: "Nouvel utilisateur",
-    description: "Thomas Bernard ajouté avec le rôle CLIENT",
-    time: "Il y a 8h",
-    user: "Admin",
-    status: "info",
-  },
-]
-
-const topPerformingConfigs = [
-  { id: 127, project: "Alpha", performance: 96, zone: "Urbain", trend: "up" },
-  { id: 125, project: "Beta", performance: 94, zone: "Rural", trend: "up" },
-  { id: 123, project: "Gamma", performance: 92, zone: "Industriel", trend: "stable" },
-  { id: 121, project: "Delta", performance: 89, zone: "Suburbain", trend: "down" },
-]
-
-const quickStats = [
-  {
-    title: "Configurations Actives",
-    value: "127",
-    change: "+12%",
-    trend: "up",
-    icon: Settings,
-    color: "blue",
-    description: "vs mois dernier",
-  },
-  {
-    title: "Performance Moyenne",
-    value: "92.4%",
-    change: "+4.2%",
-    trend: "up",
-    icon: TrendingUp,
-    color: "green",
-    description: "objectif: 90%",
-  },
-  {
-    title: "Rapports Générés",
-    value: "45",
-    change: "+8%",
-    trend: "up",
-    icon: FileText,
-    color: "purple",
-    description: "ce mois-ci",
-  },
-  {
-    title: "Utilisateurs Actifs",
-    value: "23",
-    change: "+3",
-    trend: "up",
-    icon: Users,
-    color: "orange",
-    description: "nouveaux cette semaine",
-  },
-]
 
 export default function DashboardPage() {
-  // const [user, setUser] = useState<any>(null)
   const [timeRange, setTimeRange] = useState("6m")
+  const [rapports, setRapports] = useState([])
+  const [configurations, setConfigurations] = useState([])
+  const [notifications, setNotifications] = useState([])
+  const [clients, setClients] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const router = useRouter()
 
-
-
   const { user } = useContext(AuthContext)
-  const {logoutUser} = useContext(AuthContext);
-  const { profileData, loading, error } = useAdminService();
+  const { profileData } = useAdminService()
 
-  if (error) return <p>Erreur : {error}</p>;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        
+        // Chargement parallèle des données
+        const [rapportsRes, configsRes, notifsRes, clientsRes] = await Promise.all([
+          getAllRapports(),
+          getAllConfigurations(),
+          getAllNotifications(),
+          getAllClients()
+        ])
 
-  if (!profileData) {
+        if (rapportsRes.success) setRapports(rapportsRes.data)
+        if (configsRes.success) setConfigurations(configsRes.data)
+        if (notifsRes.success) setNotifications(notifsRes.data)
+        if (clientsRes.success) setClients(clientsRes.data)
+
+      } catch (err) {
+        setError(err.message || "Erreur lors du chargement des données")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  // Données calculées
+  const performanceData = generatePerformanceData(rapports)
+  const projectStatusData = generateProjectStatusData(rapports)
+  const networkCoverageData = generateNetworkCoverageData()
+  const recentActivities = generateRecentActivities(notifications)
+  const topPerformingConfigs = generateTopPerformingConfigs(rapports)
+  const quickStats = generateQuickStats(rapports, configurations, clients)
+
+  if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
@@ -168,33 +100,42 @@ export default function DashboardPage() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64 flex items-center justify-center">
+          <div className="text-center text-red-500">{error}</div>
+        </div>
+      </div>
+    )
+  }
+
+  // Fonctions utilitaires
   const getActivityIcon = (type) => {
-    switch (type) {
-      case "configuration":
-        return <Settings className="h-4 w-4 text-blue-500" />
-      case "report":
-        return <FileText className="h-4 w-4 text-green-500" />
-      case "alert":
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />
-      case "user":
-        return <Users className="h-4 w-4 text-purple-500" />
-      default:
-        return <Activity className="h-4 w-4 text-gray-500" />
-    }
+    if (type.includes("rapport")) return <FileText className="h-4 w-4 text-green-500" />
+    if (type.includes("configuration")) return <Settings className="h-4 w-4 text-blue-500" />
+    if (type.includes("alerte")) return <AlertCircle className="h-4 w-4 text-yellow-500" />
+    if (type.includes("utilisateur")) return <Users className="h-4 w-4 text-purple-500" />
+    return <Activity className="h-4 w-4 text-gray-500" />
   }
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "success":
+      case "EXCELLENT":
         return "bg-green-100 border-green-200"
-      case "warning":
-        return "bg-yellow-100 border-yellow-200"
-      case "info":
+      case "BON":
         return "bg-blue-100 border-blue-200"
+      case "MOYEN":
+        return "bg-yellow-100 border-yellow-200"
+      case "INSUFFISANT":
+        return "bg-red-100 border-red-200"
       default:
         return "bg-gray-100 border-gray-200"
     }
   }
+
+
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -329,9 +270,9 @@ export default function DashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Globe className="mr-2 h-5 w-5 text-purple-600" />
-                  Statut des Projets
+                  Statut des Rapports
                 </CardTitle>
-                <CardDescription>Répartition par état d'avancement</CardDescription>
+                <CardDescription>Répartition par qualité de liaison</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
@@ -373,20 +314,29 @@ export default function DashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Zap className="mr-2 h-5 w-5 text-green-600" />
-                  Couverture Réseau par Zone
+                  Qualité de Liaison
                 </CardTitle>
-                <CardDescription>Pourcentage de couverture 5G optimale</CardDescription>
+                <CardDescription>Répartition des marges de liaison</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {networkCoverageData.map((zone, index) => (
+                {[
+                  { zone: "Excellente", coverage: rapports.filter(r => r.status === "EXCELLENT").length, color: "#10b981" },
+                  { zone: "Bonne", coverage: rapports.filter(r => r.status === "BON").length, color: "#3b82f6" },
+                  { zone: "Moyenne", coverage: rapports.filter(r => r.status === "MOYEN").length, color: "#f59e0b" },
+                  { zone: "Insuffisante", coverage: rapports.filter(r => r.status === "INSUFFISANT").length, color: "#ef4444" },
+                ].map((zone, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-700">{zone.zone}</span>
                       <span className="text-sm font-bold" style={{ color: zone.color }}>
-                        {zone.coverage}%
+                        {zone.coverage}
                       </span>
                     </div>
-                    <Progress value={zone.coverage} className="h-2" />
+                    <Progress 
+                      value={(zone.coverage / rapports.length) * 100} 
+                      className="h-2" 
+                      indicatorColor={zone.color}
+                    />
                   </div>
                 ))}
               </CardContent>
@@ -397,29 +347,33 @@ export default function DashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Shield className="mr-2 h-5 w-5 text-blue-600" />
-                  Meilleures Configurations
+                  Meilleurs Rapports
                 </CardTitle>
-                <CardDescription>Top 4 des configurations les plus performantes</CardDescription>
+                <CardDescription>Top 4 des rapports les plus performants</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {topPerformingConfigs.map((config, index) => (
-                    <div key={config.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  {topPerformingConfigs.map((rapport, index) => (
+                    <div key={rapport.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full text-sm font-bold text-blue-600">
                           {index + 1}
                         </div>
                         <div>
                           <p className="font-medium text-gray-900">
-                            #{config.id} - {config.project}
+                            Rapport #{rapport.id}
                           </p>
-                          <p className="text-sm text-gray-500">{config.zone}</p>
+                          <p className="text-sm text-gray-500">Marge: {rapport.margeLiaison.toFixed(2)} dB</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="font-bold text-green-600">{config.performance}%</span>
-                        {config.trend === "up" && <ArrowUpRight className="h-4 w-4 text-green-500" />}
-                        {config.trend === "down" && <ArrowDownRight className="h-4 w-4 text-red-500" />}
+                        <span className={`font-bold ${
+                          rapport.status === "EXCELLENT" ? "text-green-600" :
+                          rapport.status === "BON" ? "text-blue-600" :
+                          rapport.status === "MOYEN" ? "text-yellow-600" : "text-red-600"
+                        }`}>
+                          {rapport.status}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -459,7 +413,7 @@ export default function DashboardPage() {
                         <span className="text-xs text-gray-500">{activity.time}</span>
                       </div>
                       <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                      <p className="text-xs text-gray-500 mt-2">Par {activity.user}</p>
+                      <p className="text-xs text-gray-500 mt-2">Système</p>
                     </div>
                   </div>
                 ))}
@@ -470,4 +424,131 @@ export default function DashboardPage() {
       </div>
     </div>
   )
+}
+
+// Fonctions de génération de données
+function generatePerformanceData(rapports) {
+  const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun"]
+  const currentMonth = new Date().getMonth()
+  
+  return months.map((month, index) => {
+    const monthIndex = (currentMonth - months.length + 1 + index + 12) % 12
+    const monthRapports = rapports.filter(r => {
+      const date = new Date(r.date)
+      return date.getMonth() === monthIndex
+    })
+    
+    const avgPerformance = monthRapports.length > 0 
+      ? monthRapports.reduce((sum, r) => sum + r.notePerformance, 0) / monthRapports.length
+      : 0
+
+    return {
+      month,
+      performance: Math.max(0, avgPerformance + 100), // Ajustement pour avoir des valeurs positives
+      target: 90,
+      configurations: monthRapports.length
+    }
+  })
+}
+
+function generateProjectStatusData(rapports) {
+  return [
+    { name: "Excellent", value: rapports.filter(r => r.status === "EXCELLENT").length, color: "#10b981" },
+    { name: "Bon", value: rapports.filter(r => r.status === "BON").length, color: "#3b82f6" },
+    { name: "Moyen", value: rapports.filter(r => r.status === "MOYEN").length, color: "#f59e0b" },
+    { name: "Insuffisant", value: rapports.filter(r => r.status === "INSUFFISANT").length, color: "#ef4444" },
+  ]
+}
+
+function generateNetworkCoverageData() {
+  // Données statiques car non fournies par l'API
+  return [
+    { zone: "Urbain Dense", coverage: 95, color: "#10b981" },
+    { zone: "Urbain", coverage: 88, color: "#3b82f6" },
+    { zone: "Suburbain", coverage: 82, color: "#f59e0b" },
+    { zone: "Rural", coverage: 76, color: "#ef4444" },
+  ]
+}
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffHours = Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    
+    if (diffHours < 24) {
+      return `Il y a ${Math.floor(diffHours)}h`
+    } else {
+      return `Il y a ${Math.floor(diffHours / 24)}j`
+    }
+  }
+function generateRecentActivities(notifications) {
+  return notifications.slice(0, 4).map(notif => ({
+    id: notif.id,
+    type: notif.libelle.toLowerCase(),
+    title: notif.libelle,
+    description: notif.description,
+    time: formatDate(notif.date),
+    status: notif.status || "info"
+  }))
+}
+
+function generateTopPerformingConfigs(rapports) {
+  return [...rapports]
+    .sort((a, b) => b.margeLiaison - a.margeLiaison)
+    .slice(0, 4)
+    .map(rapport => ({
+      id: rapport.id,
+      margeLiaison: rapport.margeLiaison,
+      status: rapport.status
+    }))
+}
+
+function generateQuickStats(rapports, configurations, clients) {
+  const totalRapports = rapports.length
+  const totalConfigs = configurations.length
+  const totalClients = clients.length
+  
+  // Calcul de la performance moyenne (ajustée pour être positive)
+  const avgPerformance = rapports.length > 0 
+    ? rapports.reduce((sum, r) => sum + r.notePerformance, 0) / rapports.length + 100
+    : 0
+
+  return [
+    {
+      title: "Configurations",
+      value: totalConfigs,
+      change: "+12%",
+      trend: "up",
+      icon: Settings,
+      color: "blue",
+      description: "configurations actives",
+    },
+    {
+      title: "Performance Moyenne",
+      value: `${avgPerformance.toFixed(1)}%`,
+      change: "+4.2%",
+      trend: "up",
+      icon: TrendingUp,
+      color: "green",
+      description: "objectif: 90%",
+    },
+    {
+      title: "Rapports Générés",
+      value: totalRapports,
+      change: "+8%",
+      trend: "up",
+      icon: FileText,
+      color: "purple",
+      description: "ce mois-ci",
+    },
+    {
+      title: "Clients Actifs",
+      value: totalClients,
+      change: "+3",
+      trend: "up",
+      icon: Users,
+      color: "orange",
+      description: "clients enregistrés",
+    },
+  ]
 }

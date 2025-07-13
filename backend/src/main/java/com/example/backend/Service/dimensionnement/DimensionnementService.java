@@ -46,6 +46,7 @@ public class DimensionnementService implements IDimensionnementService {
         rapport.setLatenceEstimee(latence);
         rapport.setNotePerformance(calculerScorePerformance(marge, debit, latence));
         rapport.determineStatus();
+        rapport.setNiveauQualite(evaluerNiveauQualite(rapport.getStatus()));
         rapport.setConclusion(genererConclusion(rapport.getStatus()));
 
         rapportRepo.save(rapport);
@@ -180,4 +181,13 @@ public class DimensionnementService implements IDimensionnementService {
 
         return rapportRepo.save(existing);
     }
+    private String evaluerNiveauQualite(Status status) {
+        return switch (status) {
+            case EXCELLENT -> "Très bonne qualité";
+            case BON -> "Bonne qualité";
+            case MOYEN -> "Qualité moyenne";
+            default -> "Mauvaise qualité";
+        };
+    }
+
 }

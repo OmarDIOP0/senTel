@@ -205,7 +205,7 @@ export default function CreateConfigurationPage() {
                 <Button onClick={() => router.push("/configurations")}>
                   Retour aux configurations
                 </Button>
-                <Button onClick={() => router.push("/rapports/" + rapport.id)} className="ml-2">
+                <Button onClick={() => router.push("/rapports" )} className="ml-2">
                   Voir le rapport
                 </Button>
               </div>
@@ -508,7 +508,7 @@ export default function CreateConfigurationPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Projet:</Label>
-                    <p>{projects.find(p => p.id === formData.projetId)?.nom || 'Non spécifié'}</p>
+                    <p>{projects.find(p => parseInt(p.id) === formData.projetId)?.nom || 'Non spécifié'}</p>
                   </div>
                   <div>
                     <Label>Distance:</Label>
