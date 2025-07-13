@@ -205,6 +205,9 @@ export default function CreateConfigurationPage() {
                 <Button onClick={() => router.push("/configurations")}>
                   Retour aux configurations
                 </Button>
+                <Button onClick={() => router.push("/rapports/" + rapport.id)} className="ml-2">
+                  Voir le rapport
+                </Button>
               </div>
             </CardContent>
           </Card>
