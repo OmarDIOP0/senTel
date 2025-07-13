@@ -4,10 +4,7 @@ import com.example.backend.Service.configuration.ConfigurationService;
 import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.model.Configuration;
 import com.example.backend.model.Rapport;
-import com.example.backend.request.AttenuationConfigRequest;
-import com.example.backend.request.ConfigurationRequest;
-import com.example.backend.request.EmetteurConfigRequest;
-import com.example.backend.request.RecepteurConfigRequest;
+import com.example.backend.request.*;
 import com.example.backend.response.ApiResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -36,6 +34,25 @@ public class ConfigurationController {
                     new ApiResponse(
                             true,
                             "Liste des configurations",
+                            configs
+                    )
+            );
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(
+                    false,
+                    "Erreur lors de la création de la configuration",
+                    e.getMessage()
+            ));
+        }
+    }
+    @GetMapping("/projet")
+    public ResponseEntity<ApiResponse> getConfigurations() {
+        try{
+            List<Map<String, Object>> configs = configurationService.getConfigurationsWithProjetName();
+            return  ResponseEntity.status(HttpStatus.OK).body(
+                    new ApiResponse(
+                            true,
+                            "Liste des configurations:",
                             configs
                     )
             );

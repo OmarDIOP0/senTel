@@ -10,8 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -140,6 +139,9 @@ public class ConfigurationService implements IConfigurationService{
         request.setAdminId(config.getAdministrateur() != null ? config.getAdministrateur().getId() : null);
 
         return dimensionnementService.genererRapportComplet(request);
+    }
+    public List<Map<String, Object>> getConfigurationsWithProjetName(){
+        return configurationRepo.findAllConfigsWithProjetNameNative();
     }
 
 }

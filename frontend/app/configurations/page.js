@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { getAllConfigurations } from "@/services/configurationService"
+import { getAllConfigurations,getAllConfigurationsV2 } from "@/services/configurationService"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, Filter } from "lucide-react"
@@ -20,11 +20,13 @@ export default function ConfigurationsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const router = useRouter()
 
+
+
   useEffect(() => {
     const fetchConfigurations = async () => {
       try {
         setLoading(true)
-        const response = await getAllConfigurations()
+        const response = await getAllConfigurationsV2()
         console.log("API Response:", response)
         
         // Assurez-vous que la réponse est bien un tableau
@@ -150,24 +152,31 @@ export default function ConfigurationsPage() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>ID</TableHead>
+                            <TableHead>Projet</TableHead>
                             <TableHead>Distance (km)</TableHead>
                             <TableHead>Bande passante (MHz)</TableHead>
-                            <TableHead>Atténuations</TableHead>
-                            <TableHead>Projet</TableHead>
+                            {/* <TableHead>Atténuations</TableHead> */}
                             <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {configs.map((config) => (
                             <TableRow key={config.id}>
+                              
                               <TableCell className="font-medium">#{config.id}</TableCell>
+                              <TableCell>{config.nomProjet || "-"}</TableCell>
                               <TableCell>{config.distance}</TableCell>
                               <TableCell>{config.bandePassante}</TableCell>
-                              <TableCell>
+                              {/* <TableCell>
                                 {config.attenuations?.length || 0}
+                              </TableCell> */}
+                              
+                              <TableCell>
+                                <Button className="bg-blue-700 ml-2"><Eye className="mr-1 h-4 w-4" />Voir</Button>
+                                <Button className="bg-yellow-300 mx-2"><Edit className="mr-1 h-4 w-4" />Modifier</Button>
+                                <Button className="bg-red-700 mx-2"><Trash2 className="mr-1 h-4 w-4" />Supprimer</Button>
                               </TableCell>
-                              <TableCell>{config.projet?.nom || "-"}</TableCell>
-                              <TableCell className="text-right">
+                              {/* <TableCell className="text-right">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="h-8 w-8 p-0">
@@ -189,7 +198,7 @@ export default function ConfigurationsPage() {
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
-                              </TableCell>
+                              </TableCell> */}
                             </TableRow>
                           ))}
                         </TableBody>

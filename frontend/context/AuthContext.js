@@ -7,7 +7,7 @@ import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import showAlert from "../utils/alert";
 import APIURL from "../utils/apiUrl";
-import Swal from "sweetalert2"; // 🔁 Assure-toi que `sweetalert2` est installé
+import Swal from "sweetalert2"; 
 
 const AuthContext = createContext();
 export default AuthContext;
@@ -76,20 +76,20 @@ const [user, setUser] = useState(() => {
         }
       }
 
-      Swal.fire({
-        title: `Erreur lors de la connexion ❌`,
-        text: messageError,
-        icon: "error",
-        toast: true,
-        timer: 6000,
-        position: "top-right",
-        timerProgressBar: true,
-        showConfirmButton: false,
-        width: "auto",
-        customClass: {
-          popup: "swal2-toast",
-        },
-      });
+      // Swal.fire({
+      //   title: `Erreur lors de la connexion ❌`,
+      //   text: messageError,
+      //   icon: "error",
+      //   toast: true,
+      //   timer: 6000,
+      //   position: "top-right",
+      //   timerProgressBar: true,
+      //   showConfirmButton: false,
+      //   width: "auto",
+      //   customClass: {
+      //     popup: "swal2-toast",
+      //   },
+      // });
     },
   });
 

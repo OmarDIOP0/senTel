@@ -4,6 +4,10 @@ export const getAllConfigurations = async () => {
   const response = await authorizedApi().get("/configuration");
   return response.data;
 };
+export const getAllConfigurationsV2 = async () => {
+  const response = await authorizedApi().get("/configuration/projet");
+  return response.data;
+};
 
 export const getConfigurationById = async (id) => {
   const response = await authorizedApi().get(`/configuration/${id}`);
