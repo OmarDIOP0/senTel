@@ -276,7 +276,7 @@ export default function ProjetsPage() {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => router.push(`/configurations?project=${projet.id}`)}
+                      onClick={() => router.push(`/projets/${projet.id}/configuration`)}
                     >
                       Voir configurations
                     </Button>

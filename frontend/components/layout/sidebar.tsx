@@ -1,6 +1,6 @@
 "use client"
 
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react"
 import AuthContext from "@/context/AuthContext"
+import { getAllNotifications } from "@/services/notificationService"
 import { useAdminService } from "@/services/useAdminService"
 
 const navigation = [
@@ -28,13 +29,14 @@ const navigation = [
   { name: "Configurations", href: "/configurations", icon: Settings },
   { name: "Rapports", href: "/rapports", icon: FileText },
   { name: "Projets", href: "/projets", icon: FolderOpen },
-  { name: "Statistiques", href: "/statistiques", icon: BarChart3 },
+  // { name: "Statistiques", href: "/statistiques", icon: BarChart3 },
   { name: "Utilisateurs", href: "/utilisateurs", icon: Users },
   { name: "Notifications", href: "/notifications", icon: Bell },
 ]
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
+  const [notifications, setNotifications] = useState<any>([])
   const pathname = usePathname()
   const router = useRouter()
 
@@ -45,7 +47,16 @@ const {logoutUser} = useContext(AuthContext);
     email?: string
     // add other properties if needed
   }
+    useEffect(() => {
+      const fetchNotifications = async () => {
+          const data = await getAllNotifications()
+          setNotifications(data.data || [])
+          console.log("Notifications fetched:", data.data)
+      }
   
+      fetchNotifications()
+    }, [])
+   const lengthNotifications = notifications.length;
     const { profileData, loading, error } = useAdminService() as {
       profileData: ProfileData | null,
       loading: boolean,
@@ -97,7 +108,7 @@ const {logoutUser} = useContext(AuthContext);
                   {item.name}
                   {item.name === "Notifications" && (
                     <Badge variant="destructive" className="ml-auto">
-                      3
+                      {lengthNotifications > 0 ? lengthNotifications : "0"}
                     </Badge>
                   )}
                 </Link>
