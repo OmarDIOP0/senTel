@@ -94,7 +94,7 @@ const {registerMutation} = useContext(AuthContext);
                 id="nomComplet"
                 name="nomComplet"
                 type="text"
-                placeholder="Jean Dupont"
+                placeholder="Omar DIOP"
                 value={formData.nomComplet}
                 onChange={handleChange}
                 required
@@ -107,7 +107,7 @@ const {registerMutation} = useContext(AuthContext);
                 id="email"
                 name="email"
                 type="email"
-                placeholder="jean@exemple.com"
+                placeholder="omar@exemple.com"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -127,8 +127,8 @@ const {registerMutation} = useContext(AuthContext);
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ADMIN">Administrateur</SelectItem>
-                    <SelectItem value="USER">Utilisateur</SelectItem>
-                    <SelectItem value="GUEST">Invité</SelectItem>
+                    <SelectItem value="CLIENT">Utilisateur</SelectItem>
+                    <SelectItem value="INGENIEUR_RESEAU">Ingenieur Reseau</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -48,7 +48,7 @@ export default function ConfigurationsPage() {
   // Group by project name or use "Sans projet" as default
   const groupedConfigurations = Array.isArray(configurations) 
     ? configurations.reduce((groups, config) => {
-        const projectName = config.projet?.nom || "Sans projet"
+        const projectName = config.nomProjet|| "Sans projet"
         if (!groups[projectName]) {
           groups[projectName] = []
         }
@@ -174,7 +174,7 @@ export default function ConfigurationsPage() {
                               <TableCell>
                                 <Button className="bg-blue-700 ml-2"><Eye className="mr-1 h-4 w-4" />Voir</Button>
                                 <Button className="bg-yellow-300 mx-2"><Edit className="mr-1 h-4 w-4" />Modifier</Button>
-                                <Button className="bg-red-700 mx-2"><Trash2 className="mr-1 h-4 w-4" />Supprimer</Button>
+                                {/* <Button className="bg-red-700 mx-2"><Trash2 className="mr-1 h-4 w-4" />Supprimer</Button> */}
                               </TableCell>
                               {/* <TableCell className="text-right">
                                 <DropdownMenu>

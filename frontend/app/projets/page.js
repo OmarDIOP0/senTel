@@ -15,6 +15,7 @@ import { Plus, Search, MoreHorizontal, Edit, Trash2, FolderOpen, Settings } from
 import { getAllProjets, deleteProjet, createProjet } from "../../services/projetService"
 import { toast } from "@/components/ui/use-toast"
 
+
 const getStatusBadge = (status) => {
   switch (status) {
     case "ACTIVE":

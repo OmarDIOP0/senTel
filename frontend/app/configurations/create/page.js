@@ -16,6 +16,7 @@ import { getAllProjets } from "@/services/projetService"
 import { createConfiguration, addEmetteurToConfig, addRecepteurToConfig, addAttenuationsToConfig, simulerConfiguration } from "@/services/configurationService"
 import { toast } from "@/components/ui/use-toast"
 import { useAdminService } from "@/services/useAdminService"
+import { generateReportPDF } from "@/utils/pdfGenerator"
 
 const attenuationTypes = [
   "PERTE_EPISSURE_FUSION",
@@ -176,7 +177,7 @@ export default function CreateConfigurationPage() {
         title: "Succès",
         description: "Simulation terminée",
       })
-      setTimeout(() => router.push("/configurations"), 2000)
+      setTimeout(() => router.push("/configurations"), 4000)
     } catch (err) {
       setError(err.response?.data?.message || "Erreur lors de la simulation")
       toast({
@@ -205,7 +206,7 @@ export default function CreateConfigurationPage() {
                 <Button onClick={() => router.push("/configurations")}>
                   Retour aux configurations
                 </Button>
-                <Button onClick={() => router.push("/rapports" )} className="ml-2">
+                <Button onClick={() => generateReportPDF(rapport)} className="ml-2">
                   Voir le rapport
                 </Button>
               </div>

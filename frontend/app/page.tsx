@@ -30,34 +30,34 @@ const features = [
 ]
 
 const stats = [
-  { label: "Configurations Actives", value: "500+", icon: Settings },
-  { label: "Rapports Générés", value: "1,200+", icon: BarChart3 },
-  { label: "Utilisateurs Actifs", value: "150+", icon: Users },
-  { label: "Projets Déployés", value: "75+", icon: Globe },
+  { label: "Configurations Actives", value: "5+", icon: Settings },
+  { label: "Rapports Générés", value: "5+", icon: BarChart3 },
+  { label: "Utilisateurs", value: "3+", icon: Users },
+  { label: "Projets Déployés", value: "5+", icon: Globe },
 ]
 
 const testimonials = [
   {
-    name: "Marie Dubois",
-    role: "Ingénieur Réseau",
-    company: "TelecomFrance",
+    name: "Omar DIOP",
+    role: "Ingénieur Logiciel",
+    company: "CEO SenTel",
     content:
-      "SenTel a révolutionné notre approche du dimensionnement 5G. Les analyses sont précises et l'interface intuitive.",
+      "SenTel a révolutionné l'approche du dimensionnement 5G. Les analyses sont précises et l'interface intuitive.",
     rating: 5,
   },
   {
-    name: "Pierre Martin",
-    role: "Chef de Projet",
-    company: "NetworkSolutions",
+    name: "Ndeye Mareme Gueye",
+    role: "Ingénieure Logiciel",
+    company: "CTO SenTel",
     content:
-      "Un outil indispensable pour nos déploiements 5G. Les rapports automatisés nous font gagner un temps précieux.",
+      "Un outil indispensable pour les déploiements 5G. Les rapports automatisés nous font gagner un temps précieux.",
     rating: 5,
   },
   {
-    name: "Sophie Laurent",
-    role: "Directrice Technique",
-    company: "ConnectPro",
-    content: "La qualité des analyses et la facilité d'utilisation font de SenTel notre solution de référence.",
+    name: "Mamadou Sylla",
+    role: "Testeur Logiciel",
+    company: "FreeLanceur",
+    content: "La qualité des analyses et la facilité d'utilisation font de SenTel une solution de référence.",
     rating: 5,
   },
 ]
@@ -113,11 +113,11 @@ export default function HomePage() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/login">
+            {/* <Link href="/login">
               <Button size="lg" variant="outline" className="text-lg px-8 py-4 bg-transparent">
                 Voir la démo
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </section>
@@ -173,7 +173,7 @@ export default function HomePage() {
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Ce que disent nos clients</h2>
-            <p className="text-xl text-gray-600">Plus de 150 professionnels nous font confiance</p>
+            <p className="text-xl text-gray-600">Plus de 3 professionnels nous font confiance</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
@@ -267,7 +267,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 SenTel. Tous droits réservés.</p>
+            <p>&copy; 2025 SenTel. Tous droits réservés.</p>
           </div>
         </div>
       </footer>

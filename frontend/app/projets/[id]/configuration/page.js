@@ -11,6 +11,7 @@ import { ArrowLeft, Settings, FileText, Edit, Trash2 } from "lucide-react";
 import { getConfigurationByProjet } from "@/services/configurationService";
 import { toast } from "@/components/ui/use-toast";
 
+
 export default function ProjectConfigurationsPage() {
   const { id } = useParams();
   const [configurations, setConfigurations] = useState([]);
