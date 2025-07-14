@@ -1,6 +1,6 @@
 # 📡 SenTel – Outil de Dimensionnement et Planification des Systèmes de Télécommunications
 
-SenTel est une application web permettant de concevoir, planifier et dimensionner efficacement des systèmes de télécommunications. Elle est construite avec une architecture moderne **Spring Boot (Java)** pour le back-end et **React.js** pour le front-end.
+SenTel est une application web permettant de concevoir, planifier et dimensionner efficacement des systèmes de télécommunications du réseau 5G. Elle est construite avec une architecture moderne **Spring Boot (Java)** pour le back-end et **React.js** pour le front-end.
 
 
 ## 🚀 Fonctionnalités principales
@@ -22,7 +22,6 @@ SenTel/
 │ ├── src/
 │ └── package.json
 ├── README.md
-└── documentation/
 
 ---
 
