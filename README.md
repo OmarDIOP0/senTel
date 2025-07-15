@@ -62,5 +62,5 @@ git clone https://github.com/OmarDIOP0/sentel.git
 cd sentel
 
 ## Auteur
-Omar DIOP
-Ndeye M Gueye
+Omar DIOP M1 GLSI
+Ndeye M Gueye M1 GLSI
